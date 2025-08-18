@@ -26,6 +26,14 @@ class Ui(QMainWindow):
        
     def conectarport(self):
         print("Conectar puerto serie")
+        
+# ================== EJECUCIÓN ==================
+if __name__ == "__main__":
+    app = QApplication(sys.argv)   # Crear la aplicación
+    window = Ui()                  # Crear la ventana
+    window.show()                  # Mostrar la ventana
+    sys.exit(app.exec_())          # Ejecutar el loop de eventos        
+        
 """
 Created on Sun Aug 17 17:29:13 2025
 
