@@ -9,6 +9,7 @@ from PyQt5 import uic
 from PyQt5.QtWidgets import QMainWindow, QApplication, QDialog, QFileDialog
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
+from serial.tools import list_ports
 
 print("Proyecto Medición de Resistencias - Grupo 1")
 
@@ -47,21 +48,9 @@ class Ui(QMainWindow):
         #self.salir.clicked.connect(self.salir)
             
     def scanport(self):
-        print("Escanear puerto serie") 
-        def puertos_seriales():
-            ports = ['COM%s' % (i + 1) for i in range(256)]
-            encontrados = []
-            for port in ports:
-                try:
-                    s = serial.Serial(port)
-                    s.close()
-                    encontrados = port
-                except (OSError, serial.SerialException):
-                    pass
-            return encontrados
-
-        puertoencontrado = str(puertos_seriales())
-        self.etiqueta.setText('Puertos disponibles: ' + puertoencontrado)
+        puertos = [p.device for p in list_ports.comports()]
+        disponibles = ", ".join(puertos) if puertos else "ninguno"
+        self.etiqueta.setText(f"Puertos disponibles: {disponibles}")
         
     def conectarport1(self):
         print("Conectar puerto serie 1")
