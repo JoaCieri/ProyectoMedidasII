@@ -87,8 +87,8 @@ border-color: rgb(0, 0, 0);</string>
    <widget class="QComboBox" name="Combobox">
     <property name="geometry">
      <rect>
-      <x>90</x>
-      <y>220</y>
+      <x>30</x>
+      <y>230</y>
       <width>101</width>
       <height>31</height>
      </rect>
@@ -137,8 +137,8 @@ border-color: rgb(0, 0, 0);</string>
    <widget class="QPushButton" name="conectar">
     <property name="geometry">
      <rect>
-      <x>40</x>
-      <y>270</y>
+      <x>30</x>
+      <y>280</y>
       <width>91</width>
       <height>31</height>
      </rect>
@@ -147,14 +147,14 @@ border-color: rgb(0, 0, 0);</string>
      <string notr="true">background-color: rgb(255, 255, 255);</string>
     </property>
     <property name="text">
-     <string>Conectar puerto</string>
+     <string>Conectar puerto 1</string>
     </property>
    </widget>
    <widget class="QPushButton" name="cerrar_port">
     <property name="geometry">
      <rect>
-      <x>150</x>
-      <y>270</y>
+      <x>30</x>
+      <y>330</y>
       <width>91</width>
       <height>31</height>
      </rect>
@@ -163,7 +163,7 @@ border-color: rgb(0, 0, 0);</string>
      <string notr="true">background-color: rgb(255, 255, 255);</string>
     </property>
     <property name="text">
-     <string>Cerrar puerto</string>
+     <string>Cerrar puerto 1</string>
     </property>
    </widget>
    <widget class="QLabel" name="label_6">
@@ -277,6 +277,88 @@ border-color: rgb(0, 0, 0);</string>
     </property>
     <property name="text">
      <string>SALIR</string>
+    </property>
+   </widget>
+   <widget class="QComboBox" name="Combobox_2">
+    <property name="geometry">
+     <rect>
+      <x>160</x>
+      <y>230</y>
+      <width>101</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <item>
+     <property name="text">
+      <string>Select Port...</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>COM1</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>COM2</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>COM3</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>COM4</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>COM5</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>COM6</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>COM7</string>
+     </property>
+    </item>
+   </widget>
+   <widget class="QPushButton" name="conectar_2">
+    <property name="geometry">
+     <rect>
+      <x>160</x>
+      <y>280</y>
+      <width>91</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">background-color: rgb(255, 255, 255);</string>
+    </property>
+    <property name="text">
+     <string>Conectar puerto 2</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="cerrar_port_2">
+    <property name="geometry">
+     <rect>
+      <x>160</x>
+      <y>330</y>
+      <width>91</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">background-color: rgb(255, 255, 255);</string>
+    </property>
+    <property name="text">
+     <string>Cerrar puerto 2</string>
     </property>
    </widget>
   </widget>
