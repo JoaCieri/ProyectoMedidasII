@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 import sys
 import time
-import serial
 import numpy as np
 
 from PyQt5 import uic
@@ -9,6 +8,7 @@ from PyQt5.QtWidgets import QMainWindow, QApplication, QDialog, QFileDialog
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 from serial.tools import list_ports
+from ut61eplus.dmm import DMM
 
 print("Proyecto Medición de Resistencias - Grupo 1")
 
@@ -37,23 +37,10 @@ class Ui(QMainWindow):
         #self.salir.clicked.connect(self.salir)
             
     def scanport(self):
-        puertos = [p.device for p in list_ports.comports()]
-        disponibles = ", ".join(puertos) if puertos else "ninguno"
-        self.etiqueta.setText(f"Puertos disponibles: {disponibles}")
+        pass
 
     def conectarport(self):
-        print("Conectar puerto serie")
-        port = self.Combobox.currentText()
-        
-        baudrate = 115200
-        self.ard = serial.Serial(port=port, baudrate=baudrate)
-        self.etiqueta.setText("Puerto conectado a: " + port)
-        self.conectar.setEnabled(False)
-        self.proceso.setEnabled(True)
-        self.flag2 = 1
-        self.cerrar_port.setEnabled(True)
-        self.flag1 = 1
-        #self.etiqueta.setText('Puerto NO conectado')
+        pass
         
     def salir(self):
         self.close()
