@@ -1,5 +1,6 @@
 import numpy as np
 import statistics
+import math
 
 ra = 5   # resistencia del amperímetro (ohm)
 rv = 5   # resistencia del voltímetro (ohm)
@@ -24,3 +25,15 @@ errorm_cbm=(ra)/(media_r-ra)
 
 rcorr_tbm=media_r/(1+errorm_tbm)
 rcorr_cbm=media_r/(1+errorm_cbm)
+
+desvio_i = statistics.stdev(i)
+desvio_v = statistics.stdev(v)
+
+Mui = desvio_i/math.sqrt(len(i)) #TIPO A
+Mui = desvio_v/math.sqrt(len(v)) #TIPO A
+
+incertidumbre_instr_i=1
+incertidumbre_instr_v=1
+
+
+
