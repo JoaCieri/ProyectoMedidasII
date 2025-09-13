@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>983</width>
-    <height>600</height>
+    <height>502</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -137,9 +137,9 @@ border-color: rgb(0, 0, 0);</string>
    <widget class="QPushButton" name="conectar">
     <property name="geometry">
      <rect>
-      <x>30</x>
+      <x>20</x>
       <y>280</y>
-      <width>91</width>
+      <width>111</width>
       <height>31</height>
      </rect>
     </property>
@@ -219,7 +219,7 @@ border-color: rgb(0, 0, 0);</string>
     <property name="geometry">
      <rect>
       <x>660</x>
-      <y>160</y>
+      <y>190</y>
       <width>101</width>
       <height>31</height>
      </rect>
@@ -234,8 +234,8 @@ border-color: rgb(0, 0, 0);</string>
    <widget class="QPushButton" name="select_CBM">
     <property name="geometry">
      <rect>
-      <x>780</x>
-      <y>160</y>
+      <x>770</x>
+      <y>190</y>
       <width>101</width>
       <height>31</height>
      </rect>
@@ -251,7 +251,7 @@ border-color: rgb(0, 0, 0);</string>
     <property name="geometry">
      <rect>
       <x>700</x>
-      <y>220</y>
+      <y>230</y>
       <width>131</width>
       <height>51</height>
      </rect>
@@ -267,7 +267,7 @@ border-color: rgb(0, 0, 0);</string>
     <property name="geometry">
      <rect>
       <x>390</x>
-      <y>370</y>
+      <y>310</y>
       <width>131</width>
       <height>51</height>
      </rect>
@@ -332,9 +332,9 @@ border-color: rgb(0, 0, 0);</string>
    <widget class="QPushButton" name="conectar_2">
     <property name="geometry">
      <rect>
-      <x>160</x>
+      <x>150</x>
       <y>280</y>
-      <width>91</width>
+      <width>111</width>
       <height>31</height>
      </rect>
     </property>
@@ -361,6 +361,41 @@ border-color: rgb(0, 0, 0);</string>
      <string>Cerrar puerto 2</string>
     </property>
    </widget>
+   <widget class="QComboBox" name="Combobox_3">
+    <property name="geometry">
+     <rect>
+      <x>710</x>
+      <y>140</y>
+      <width>121</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <item>
+     <property name="text">
+      <string>Cant. Muestras</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>5</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>10</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>15</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>20</string>
+     </property>
+    </item>
+   </widget>
   </widget>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">
@@ -368,7 +403,7 @@ border-color: rgb(0, 0, 0);</string>
      <x>0</x>
      <y>0</y>
      <width>983</width>
-     <height>21</height>
+     <height>26</height>
     </rect>
    </property>
   </widget>
