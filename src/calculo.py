@@ -12,7 +12,7 @@ fuente_ra= 5 #[%]
 cuenta_v=5
 cuenta_i=20
 
-selector=0 #0 = TBM ; 1 = CBM
+selector=1 #0 = TBM ; 1 = CBM
 
 # Vector de corrientes TBM [A]
 i_tbm = [2.196e-3, 2.197e-3, 2.196e-3, 2.197e-3, 2.196e-3]
@@ -80,17 +80,86 @@ if selector == 0 :
     Uc= math.sqrt(f_v+f_ins_v+f_cuenta_v+f_i+f_ins_i+f_cuenta_i+f_rv)
     print("Uc =", Uc)
     
-    Vef = 35 #AGREGAR FORMULA
+    Vef = pow(Uc,4)/((pow(f_v, 2)/(len(v_tbm)))+(pow(f_i, 2)/(len(i_tbm)))) 
+    print("Vef= ", Vef)
     
     if Vef >= 30:
-        K=2
+        K_tbm=2
     else: 
-        K=1.85
+        K_tbm=1.85
     
-    U_exp = K * Uc
+    U_exp = K_tbm * Uc
 
     print(f"R: {rcorr_tbm} ± {U_exp}")  
     
     
-if selector == 1 :  
-    pass
+if selector == 1 :
+    # ====== CBM ======
+    media_i_cbm = statistics.mean(i_cbm)
+    print("Media de I CBM =", media_i_cbm)
+    x_cbm = Decimal(media_i_cbm)
+    entero_i_cbm = int(str(x_cbm.normalize()).replace(".", "").lstrip("0")[:4])
+    print("recortado=", entero_i_cbm)
+
+    media_v_cbm = statistics.mean(v_cbm)
+    print("Media de V CBM =", media_v_cbm)
+
+    media_r_cbm = media_v_cbm / media_i_cbm
+    print("Media de R =", media_r_cbm)
+
+    # Corrección por RA (voltímetro mide R+RA, amperímetro en serie)
+    rcorr_cbm = media_r_cbm - ra
+
+    # Desvíos (repetibilidad)
+    desvio_i_cbm = statistics.stdev(i_cbm)
+    desvio_v_cbm = statistics.stdev(v_cbm)
+
+    rep_v_cbm = (desvio_v_cbm*100)/(math.sqrt(len(i_cbm))*media_v_cbm)
+    rep_i_cbm = (desvio_i_cbm*100)/(math.sqrt(len(v_cbm))*media_i_cbm)
+
+    entero_v_cbm = int(str(media_v_cbm).replace(".", ""))
+    print("Entero V=", entero_v_cbm)
+
+    cuenta_v_cbm = (cuenta_v*100)/(math.sqrt(3)*entero_v_cbm)
+    cuenta_i_cbm = (cuenta_i*100)/(math.sqrt(3)*entero_i_cbm)
+    print("Cuenta V=", cuenta_v_cbm)
+    print("Cuenta I=", cuenta_i_cbm)
+
+
+    Coef_sens_vind_cbm = 1/(1-(ra/media_r_cbm))
+    Coef_sens_iind_cbm = 1/((ra/media_r_cbm)-1)
+    Coef_sens_ra_cbm = 1/(1-(media_r_cbm/ra))
+
+    f_v_cbm       = pow(Coef_sens_vind_cbm*rep_v_cbm,2)
+    f_ins_v_cbm   = pow(Coef_sens_vind_cbm*fuente_instru_v,2)
+    f_cuenta_v_cbm= pow(Coef_sens_vind_cbm*cuenta_v_cbm,2)
+    f_i_cbm       = pow(Coef_sens_iind_cbm*rep_i_cbm,2)
+    f_ins_i_cbm   = pow(Coef_sens_iind_cbm*fuente_instru_i,2)
+    f_cuenta_i_cbm= pow(Coef_sens_iind_cbm*cuenta_i_cbm,2)
+    f_ra_cbm      = pow((fuente_ra*Coef_sens_ra_cbm)/math.sqrt(3),2)
+
+    print("1=", f_v_cbm)
+    print("2=", f_ins_v_cbm)
+    print("3=", f_cuenta_v_cbm)
+    print("4=", f_i_cbm)
+    print("5=", f_ins_i_cbm)
+    print("6=", f_cuenta_i_cbm)
+    print("7=", f_ra_cbm)
+
+    Uc_cbm = math.sqrt(
+        f_v_cbm + f_ins_v_cbm + f_cuenta_v_cbm +
+        f_i_cbm + f_ins_i_cbm + f_cuenta_i_cbm +
+        f_ra_cbm
+    )
+    print("Uc =", Uc_cbm)
+
+    Vef_cbm = pow(Uc_cbm,4)/((pow(f_v_cbm,2)/len(v_cbm)) + (pow(f_i_cbm,2)/len(i_cbm)))
+    print("Vef= ", Vef_cbm)
+
+    if Vef_cbm >= 30:
+        K_cbm = 2
+    else:
+        K_cbm = 1.85
+
+    U_exp_cbm = K_cbm * Uc_cbm
+    print(f"R: {rcorr_cbm} ± {U_exp_cbm}")
