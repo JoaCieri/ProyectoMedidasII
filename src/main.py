@@ -34,8 +34,8 @@ class Ui(QMainWindow):
         self.flag2 = 0
         self.flag3 = 0
         self.flag4 = 0
-        self.CBM_f = 0
-        self.TBM_f = 0
+        self.Selector = None
+    
         
         # CONEXION DE BOTONES
         self.scan_port.clicked.connect(self.scanport)
@@ -43,9 +43,8 @@ class Ui(QMainWindow):
         self.conectar_2.clicked.connect(self.conectarport2) 
         self.proceso.clicked.connect(self.iniciar_proceso)
         self.select_CBM.clicked.connect(self.CBM)
-        self.select_TBM.clicked.connect(self.TBM)
-        
-        #self.salir.clicked.connect(self.salir)
+        self.select_TBM.clicked.connect(self.TBM)        
+        self.salir.clicked.connect(self.salir_ui)
             
     def scanport(self):
         puertos = [p.device for p in list_ports.comports()]
@@ -74,7 +73,6 @@ class Ui(QMainWindow):
         self.ard2 = serial.Serial(port=port, baudrate=baudrate)
         self.etiqueta.setText("Puerto 2 conectado a: " + port)
         self.conectar_2.setEnabled(False)
-        #self.proceso.setEnabled(True)
         self.flag4 = 1
         self.cerrar_port_2.setEnabled(True)
         self.flag3 = 1
@@ -82,87 +80,57 @@ class Ui(QMainWindow):
         if self.flag4 and self.flag2:
             self.select_CBM.setEnabled(True) 
             self.select_TBM.setEnabled(True) 
-            
-        #self.etiqueta.setText('Puerto NO conectado')
         
-    def salir(self):
+    def salir_ui(self):
         self.close()
         
     def CBM(self):
-        self.CBM_f=1
+        self.selector=0
         self.proceso.setEnabled(True)
         self.select_TBM.setEnabled(False)
-
+        cant_muestras = int(self.Combobox_3.currentText())
+        self.consola.setText('Cantidad de muestras: ' + str(cant_muestras))
+        
+              
     def TBM(self):
-        self.TBM_f=1
+        self.selector=1
         self.proceso.setEnabled(True)
-        self.select_CBM.setEnabled(False)        
+        self.select_CBM.setEnabled(False) 
+        cant_muestras = int(self.Combobox_3.currentText())
+        self.consola.setText('Cantidad de muestras: ' + str(cant_muestras))
     
     
     def iniciar_proceso(self):
-        # amperímetro en self.ard1, voltímetro en self.ard2
-        if (not hasattr(self, "ard1") or self.ard1 is None or not self.ard1.is_open or
-            not hasattr(self, "ard2") or self.ard2 is None or not self.ard2.is_open):
-            return
+        if self.Selector == 0:
+            self.calculo_CBM()
+            
+        elif self.Selector == 1:
+            self.calculo_TBM()
+            
 
-        if not self.ard1.timeout or self.ard1.timeout <= 0:
-            self.ard1.timeout = 1.0
-        if not self.ard2.timeout or self.ard2.timeout <= 0:
-            self.ard2.timeout = 1.0
-
-        try:
-            self.ard1.reset_input_buffer(); self.ard1.reset_output_buffer()
-            self.ard2.reset_input_buffer(); self.ard2.reset_output_buffer()
-        except:
-            pass
-
-        vals_I, vals_V = [], []
-
-        for i in range(5):
-            vI, vV = None, None
-            t0 = time.time()
-            # ventana de hasta 2 s para capturar el par casi simultáneo
-            while (time.time() - t0) < 2.0 and (vI is None or vV is None):
-                if vI is None:
-                    raw1 = self.ard1.readline()
-                    if raw1:
-                        try:
-                            vI = float(raw1.decode("ascii", errors="ignore").strip().replace(",", "."))
-                        except:
-                            pass
-                if vV is None:
-                    raw2 = self.ard2.readline()
-                    if raw2:
-                        try:
-                            vV = float(raw2.decode("ascii", errors="ignore").strip().replace(",", "."))
-                        except:
-                            pass
-
-            if vI is not None: vals_I.append(vI)
-            if vV is not None: vals_V.append(vV)
-
-            self.etiqueta.setText(f"Muestra {i+1}/5  I:{vI}  V:{vV}")
-            QApplication.processEvents()
-            if i < 4:
-                time.sleep(1)
-
-        self.muestras_I = np.array(vals_I, dtype=float)
-        self.muestras_V = np.array(vals_V, dtype=float)
-
-        # Si ya definiste calcular_R_incertidumbre(), lo invocás acá:
-        res = getattr(self, "calcular_R_incertidumbre", None)
-        if callable(res):
-            out = res()
-            if out is not None:
-                R, U95 = out
-                self.etiqueta.setText(f"Listo.\nR = {R:.6g} Ω\nU95 (95%) = ±{U95:.6g} Ω")
-                return
-
-        self.etiqueta.setText("Listo.")
-
-    def calcular_R_incertidumbre(self):
+    def calculo_TBM(self):
         pass
-        #PROCESAMIENTO MATEMATICO ESTADISTICO  
+    
+    def calculo_CBM(self):
+        pass
+    
+    def obtener_k_95(Vef):
+        # Tabla de k (95%) de Student
+        k_table = {
+            1: 12.71, 2: 4.30, 3: 3.18, 4: 2.78, 5: 2.57,
+            6: 2.45, 7: 2.36, 8: 2.31, 9: 2.26, 10: 2.23,
+            11: 2.20, 12: 2.18, 13: 2.16, 14: 2.14, 15: 2.13,
+            16: 2.12, 17: 2.11, 18: 2.10, 19: 2.09, 20: 2.09,
+            25: 2.06, 30: 2.04
+            }    
+        
+        if Vef >= 30:  
+            # Cuando Vef >= 30 se usa aproximadamente k=2
+            return 2.0
+        else:
+            # Buscar el valor más cercano en la tabla
+            grados = min(k_table.keys(), key=lambda x: abs(x - int(round(Vef))))
+            return k_table[grados]
 
 # ================== EJECUCIÓN ==================
 if __name__ == "__main__":
