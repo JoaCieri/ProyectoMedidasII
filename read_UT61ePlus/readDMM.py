@@ -16,3 +16,9 @@ for i in range(5):
     print(f"Medición {i+1}: {m}")
     print("\n----------\n")
     time.sleep(2)  # espera 1 segundo
+    
+    
+      
+    #DMM entrega ua variable de la clase Measurement (ver en ut61eplus.py) (linea 39).
+    #En ese mismo codigo se acoto la salida del buffer que viene por default para solo ver MODO, RANGO, VALOR, DECIMALES, UNIDAD.
+    #Se puede editar en el def_str_ (linea 258).
