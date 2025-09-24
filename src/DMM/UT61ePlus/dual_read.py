@@ -1,13 +1,4 @@
-# dual_read.py
-# Ejecutar:  py .\dual_read.py  [lecturas] [intervalo_s]
-# Ej:        py .\dual_read.py          -> 10 lecturas, 1 s
-#            py .\dual_read.py 20 0.5   -> 20 lecturas, 0.5 s
-#
-# Requisitos:
-#   pip install pyvisa
-#   (y tu paquete/archivo que provee UT61EPLUS)
-
-import os, sys, json, time, threading
+import os, sys, json, threading, time, re
 from collections import deque
 from datetime import datetime
 
@@ -21,30 +12,28 @@ KEITHLEY_BUF = os.path.join(DESKTOP, "KEITHLEY_BUFFER.json")
 UT61E_BUF     = os.path.join(DESKTOP, "UT61EPLUS_BUFFER.json")
 # -------------------
 
-# ---------- Utilidades buffer ----------
+# --- sync primitives ---
+start_barrier = threading.Barrier(2)   # arranque de medición (ambos juntos)
+end_barrier   = threading.Barrier(2)   # fin de medición/print (ambos juntos)
+print_lock    = threading.Lock()       # evitar mezcla de líneas en consola
+
 def save_buffer_json(buffer, path):
     os.makedirs(os.path.dirname(path), exist_ok=True)
     with open(path, "w", encoding="utf-8") as f:
         json.dump(list(buffer), f, ensure_ascii=False, indent=2)
 
-def load_buffer_json(path):
-    if not os.path.exists(path):
-        return []
-    with open(path, "r", encoding="utf-8") as f:
-        return json.load(f)
-# --------------------------------------
-
-# ---------- Hilo KEITHLEY 2110 ----------
+# =============== KEITHLEY 2110 ===============
 def reader_keithley(n_reads=DEFAULT_READS, interval=DEFAULT_INTERVAL):
-    import pyvisa  # local para no requerirlo si solo usás UT
+    import pyvisa
     buffer = deque(maxlen=BUF_MAXLEN)
 
-    # Abrir recurso (auto-pick)
     rm = pyvisa.ResourceManager()
     resources = rm.list_resources()
-    pick = next((r for r in resources if "2110" in r or "0x05E6" in r or "USB" in r), (resources[0] if resources else None))
+    pick = next((r for r in resources if "2110" in r or "0x05E6" in r or "USB" in r),
+                (resources[0] if resources else None))
     if not pick:
-        print("[KEITHLEY] No hay recursos VISA disponibles.")
+        with print_lock:
+            print("[KEITHLEY] No hay recursos VISA disponibles.")
         return
 
     inst = rm.open_resource(pick)
@@ -55,7 +44,8 @@ def reader_keithley(n_reads=DEFAULT_READS, interval=DEFAULT_INTERVAL):
     try:
         try:
             idn = inst.query("*IDN?").strip()
-            print(f"[KEITHLEY] {idn}")
+            with print_lock:
+                print(f"[KEITHLEY] {idn}")
         except Exception:
             pass
 
@@ -64,6 +54,9 @@ def reader_keithley(n_reads=DEFAULT_READS, interval=DEFAULT_INTERVAL):
         inst.write(":SAMP:COUN 1")
 
         for i in range(1, n_reads + 1):
+            # — sincronizar inicio del ciclo —
+            start_barrier.wait()
+
             raw = inst.query(":MEAS:VOLT:DC?").strip()
             try:
                 value = float(raw)
@@ -71,78 +64,92 @@ def reader_keithley(n_reads=DEFAULT_READS, interval=DEFAULT_INTERVAL):
                 value = raw
             sample = {
                 "ts": datetime.now().isoformat(timespec="seconds"),
-                "value": value,
-                "raw": raw,
-                "mode": "VDC",
-                "resource": pick,
+                "value": value, "raw": raw,
+                "mode": "VDC", "resource": pick
             }
-            print(f"[KEITHLEY] {i:02d} {sample['ts']}  {sample['raw']}")
+
+            # imprimir alineado (bloqueado)
+            with print_lock:
+                print(f"[KEITHLEY] {i:02d} {sample['value']}   V   {sample['mode']}")
+
             buffer.append(sample)
             save_buffer_json(buffer, KEITHLEY_BUF)
-            time.sleep(interval)
+
+            # — sincronizar fin del ciclo —
+            leader = end_barrier.wait()  # un hilo será "líder" (retorna 0)
+            if leader == 0:
+                time.sleep(interval)     # solo uno duerme y marca el ritmo
 
         inst.write(":SYST:LOC")
     finally:
         try: inst.close()
         except Exception: pass
 
-# ---------- Hilo UT61E+ ----------
+# ======== UT61E+ helpers: parse línea en valor/unidad/modo ========
+_re_display      = re.compile(r"^display\s*=\s*([^\r\n]+)", re.IGNORECASE | re.MULTILINE)
+_re_display_unit = re.compile(r"^display_unit\s*=\s*([^\r\n\[\]]+)", re.IGNORECASE | re.MULTILINE)
+_re_mode         = re.compile(r"^mode\s*=\s*([^\r\n]+)", re.IGNORECASE | re.MULTILINE)
+
+def parse_ut_line(raw: str):
+    m_val  = _re_display.search(raw)
+    m_unit = _re_display_unit.search(raw)
+    m_mode = _re_mode.search(raw)
+    val  = (m_val.group(1).strip()  if m_val  else raw.strip())
+    unit = (m_unit.group(1).strip() if m_unit else "")
+    mode = (m_mode.group(1).strip() if m_mode else "AUTO")
+    return val, unit, mode
+
+# ===================== UT61E+ =====================
 def reader_ut61e(n_reads=DEFAULT_READS, interval=DEFAULT_INTERVAL):
-    # Importá tu clase tal como la usás en readDMM.py
     from ut61eplus import UT61EPLUS
     dmm = UT61EPLUS()
     try:
         try:
-            print(f"[UT61E+] name= {dmm.getName()}")
+            with print_lock:
+                print(f"[UT61E+] name= {dmm.getName()}")
         except Exception:
             pass
 
         buffer = deque(maxlen=BUF_MAXLEN)
 
         for i in range(1, n_reads + 1):
-            m = dmm.takeMeasurement()       # objeto Measurement (str() ya formatea)
+            # — sincronizar inicio del ciclo —
+            start_barrier.wait()
+
+            m = dmm.takeMeasurement()
             raw = str(m).strip()
-            # Opcional: si querés además extraer solo valor numérico/unidad, parsealo aquí.
+            val, unit, mode = parse_ut_line(raw)
+
             sample = {
                 "ts": datetime.now().isoformat(timespec="seconds"),
-                "value": raw,                # dejamos el string completo
-                "raw": raw,
-                "mode": "AUTO",              # o el modo que exponga tu lib
-                "resource": "UT61EPLUS",
+                "value": val,
+                "raw": f"{val} {unit}".strip(),
+                "mode": mode, "resource": "UT61EPLUS"
             }
-            print(f"[UT61E+]  {i:02d} {sample['ts']}  {sample['raw']}")
+
+            with print_lock:
+                print(f"[UT61E+]  {i:02d} {val}   {unit}   {mode}")
+
             buffer.append(sample)
             save_buffer_json(buffer, UT61E_BUF)
-            time.sleep(interval)
-    finally:
-        try:
-            dmm.close()
-        except Exception:
-            pass
 
-# ---------- MAIN ----------
+            # — sincronizar fin del ciclo —
+            leader = end_barrier.wait()
+            if leader == 0:
+                time.sleep(interval)
+    finally:
+        try: dmm.close()
+        except Exception: pass
+
+# ===================== MAIN =====================
 def main():
-    print(f"[i] Lecturas={DEFAULT_READS}  Intervalo={DEFAULT_INTERVAL}s")
+    with print_lock:
+        print(f"[i] Lecturas={DEFAULT_READS}  Intervalo={DEFAULT_INTERVAL}s")
+
     t1 = threading.Thread(target=reader_keithley, daemon=True)
     t2 = threading.Thread(target=reader_ut61e,   daemon=True)
-
     t1.start(); t2.start()
     t1.join();  t2.join()
-
-    # Al terminar, mostrar resumen buffers
-    k = load_buffer_json(KEITHLEY_BUF)
-    u = load_buffer_json(UT61E_BUF)
-    n_show = 10
-
-    print("\n=== ÚLTIMAS mediciones (KEITHLEY) ===")
-    for r in k[-n_show:]:
-        print(f"[KEITHLEY] {r['ts']}  {r['raw']}  [{r['mode']}]")
-
-    print("\n=== ÚLTIMAS mediciones (UT61E+) ===")
-    for r in u[-n_show:]:
-        print(f"[UT61E+]  {r['ts']}  {r['raw']}  [{r['mode']}]")
-
-    print(f"\n[i] Buffers:\n  KEITHLEY -> {KEITHLEY_BUF}\n  UT61E+   -> {UT61E_BUF}")
 
 if __name__ == "__main__":
     main()
