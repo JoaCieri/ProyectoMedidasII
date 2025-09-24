@@ -17,7 +17,7 @@ import pyvisa
 DEFAULT_MODE = "VDC"        # VDC/VAC/IDC/IAC/RES/FRES/READ
 DEFAULT_READS = 10          # cuántas mediciones
 DEFAULT_INTERVAL = 1.0      # segundos entre mediciones
-BUFFER_MAXLEN = 1000        # tamaño del buffer (anillo)
+BUFFER_MAXLEN = 10        # tamaño del buffer (anillo)
 BUFFER_PATH = os.path.join(os.path.expanduser("~"), "Desktop", "KEITHLEY_BUFFER.json")
 # ----------------------------------------------------
 
