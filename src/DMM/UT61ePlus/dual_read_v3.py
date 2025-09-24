@@ -1,4 +1,4 @@
-# dual_read.py — prompt CBM/TBM, vectores de mediciones y JSON de buffers
+# dual_read.py — Keithley fijo en VDC, UT61E+ auto; vectores de valores/unidades; sync por Barrier
 import os, sys, json, threading, time, re
 from collections import deque
 from datetime import datetime
@@ -12,19 +12,20 @@ DESKTOP = os.path.join(os.path.expanduser("~"), "Desktop")
 KEITHLEY_BUF = os.path.join(DESKTOP, "KEITHLEY_BUFFER.json")
 UT61E_BUF     = os.path.join(DESKTOP, "UT61EPLUS_BUFFER.json")
 KEITHLEY_VEC_JSON = os.path.join(DESKTOP, "KEITHLEY_VECTOR.json")
+KEITHLEY_UNI_JSON = os.path.join(DESKTOP, "KEITHLEY_UNITS.json")
 UT61E_VEC_JSON    = os.path.join(DESKTOP, "UT61EPLUS_VECTOR.json")
+UT61E_UNI_JSON    = os.path.join(DESKTOP, "UT61EPLUS_UNITS.json")
 
 # --- sync primitives ---
 start_barrier = threading.Barrier(2)
 end_barrier   = threading.Barrier(2)
 print_lock    = threading.Lock()
 
-# --- vectores que pediste ---
+# --- vectores solicitados ---
 KEI_VEC   = []   # valores Keithley
 KEI_UNITS = []   # unidades Keithley
 UT_VEC    = []   # valores UT61E+
 UT_UNITS  = []   # unidades UT61E+
-
 
 def save_json(obj, path):
     os.makedirs(os.path.dirname(path), exist_ok=True)
@@ -34,26 +35,12 @@ def save_json(obj, path):
 def save_buffer_json(buffer, path):
     save_json(list(buffer), path)
 
-# ========= MODO KEITHLEY por COMANDO =========
-cmd = input("Ingrese comando (CBM = Corriente DC, TBM = Voltaje DC): ").strip().upper()
-if cmd == "CBM":
-    KEI_CONF  = ":CONF:CURR:DC"
-    KEI_MEAS  = ":MEAS:CURR:DC?"
-    KEI_MODE  = "IDC"
-    KEI_UNIT  = "A"
-elif cmd == "TBM":
-    KEI_CONF  = ":CONF:VOLT:DC"
-    KEI_MEAS  = ":MEAS:VOLT:DC?"
-    KEI_MODE  = "VDC"
-    KEI_UNIT  = "V"
-else:
-    print("[i] Comando inválido; usando TBM (VDC).")
-    KEI_CONF  = ":CONF:VOLT:DC"
-    KEI_MEAS  = ":MEAS:VOLT:DC?"
-    KEI_MODE  = "VDC"
-    KEI_UNIT  = "V"
+# ========= Keithley 2110 — fijo en VDC =========
+KEI_CONF = ":CONF:VOLT:DC"
+KEI_MEAS = ":MEAS:VOLT:DC?"
+KEI_MODE = "VDC"
+KEI_UNIT = "V"
 
-# =============== KEITHLEY 2110 ===============
 def reader_keithley(n_reads=DEFAULT_READS, interval=DEFAULT_INTERVAL):
     import pyvisa
     buffer = deque(maxlen=BUF_MAXLEN)
@@ -81,7 +68,7 @@ def reader_keithley(n_reads=DEFAULT_READS, interval=DEFAULT_INTERVAL):
             pass
 
         inst.write("*CLS")
-        inst.write(KEI_CONF)
+        inst.write(KEI_CONF)     # VDC
         inst.write(":SAMP:COUN 1")
 
         for i in range(1, n_reads + 1):
@@ -100,11 +87,12 @@ def reader_keithley(n_reads=DEFAULT_READS, interval=DEFAULT_INTERVAL):
             }
 
             with print_lock:
+                # INDICE  VALOR  UNIDAD  MODO (sin timestamp)
                 print(f"[KEITHLEY] {i:02d} {sample['value']}   {KEI_UNIT}   {sample['mode']}")
 
             buffer.append(sample)
             KEI_VEC.append(value)
-            KEI_UNITS.append(KEI_UNIT)   # <<< nueva línea
+            KEI_UNITS.append(KEI_UNIT)
             save_buffer_json(buffer, KEITHLEY_BUF)
 
             leader = end_barrier.wait()
@@ -116,7 +104,7 @@ def reader_keithley(n_reads=DEFAULT_READS, interval=DEFAULT_INTERVAL):
         try: inst.close()
         except Exception: pass
 
-# ======== UT61E+ helpers: parse línea valor/unidad/modo ========
+# ======== UT61E+ helpers: parse valor/unidad/modo ========
 _re_display      = re.compile(r"^display\s*=\s*([^\r\n]+)", re.IGNORECASE | re.MULTILINE)
 _re_display_unit = re.compile(r"^display_unit\s*=\s*([^\r\n\[\]]+)", re.IGNORECASE | re.MULTILINE)
 _re_mode         = re.compile(r"^mode\s*=\s*([^\r\n]+)", re.IGNORECASE | re.MULTILINE)
@@ -162,9 +150,8 @@ def reader_ut61e(n_reads=DEFAULT_READS, interval=DEFAULT_INTERVAL):
 
             buffer.append(sample)
             UT_VEC.append(val)
-            UT_UNITS.append(unit)        # <<< nueva línea
+            UT_UNITS.append(unit)
             save_buffer_json(buffer, UT61E_BUF)
-
 
             leader = end_barrier.wait()
             if leader == 0:
@@ -175,27 +162,25 @@ def reader_ut61e(n_reads=DEFAULT_READS, interval=DEFAULT_INTERVAL):
 
 # ===================== MAIN / API =====================
 def run_dual(reads=DEFAULT_READS, interval=DEFAULT_INTERVAL):
-    """Función para usar desde otro script: devuelve (KEI_VEC, UT_VEC)."""
     with print_lock:
         print(f"[i] Lecturas={reads}  Intervalo={interval}s")
-        print(f"[i] Keithley en modo: {KEI_MODE} ({KEI_UNIT})")
+        print(f"[i] Keithley en modo fijo: {KEI_MODE} ({KEI_UNIT})")
 
     t1 = threading.Thread(target=reader_keithley, args=(reads, interval), daemon=True)
     t2 = threading.Thread(target=reader_ut61e,   args=(reads, interval), daemon=True)
     t1.start(); t2.start()
     t1.join();  t2.join()
 
-    # guardar vectores en JSON aparte
-    save_json(KEI_VEC,   os.path.join(DESKTOP, "KEITHLEY_VECTOR.json"))
-    save_json(KEI_UNITS, os.path.join(DESKTOP, "KEITHLEY_UNITS.json"))
-    save_json(UT_VEC,    os.path.join(DESKTOP, "UT61EPLUS_VECTOR.json"))
-    save_json(UT_UNITS,  os.path.join(DESKTOP, "UT61EPLUS_UNITS.json"))
+    # guardar vectores en JSON aparte (opcional, por comodidad)
+    save_json(KEI_VEC,   KEITHLEY_VEC_JSON)
+    save_json(KEI_UNITS, KEITHLEY_UNI_JSON)
+    save_json(UT_VEC,    UT61E_VEC_JSON)
+    save_json(UT_UNITS,  UT61E_UNI_JSON)
 
     with print_lock:
-        print("\n[i] Vectores listos:")
+        print("\n[i] Vectores listos (val, unidad):")
         print("  KEITHLEY:", list(zip(KEI_VEC, KEI_UNITS)))
-        print("  UT61E+  :", list(zip(UT_VEC, UT_UNITS)))
-
+        print("  UT61E+  :", list(zip(UT_VEC,  UT_UNITS)))
 
     return KEI_VEC, KEI_UNITS, UT_VEC, UT_UNITS
 
