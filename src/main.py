@@ -10,6 +10,7 @@ from PyQt5.QtWidgets import QMainWindow, QApplication, QDialog, QFileDialog
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 from serial.tools import list_ports
+from DMM.UT61ePlus.dual_read_v3 import run_dual
 
 print("Proyecto Medición de Resistencias - Grupo 1")
 
@@ -34,7 +35,7 @@ class Ui(QMainWindow):
         self.flag2 = 0
         self.flag3 = 0
         self.flag4 = 0
-        self.Selector = None
+        self.Selector = 1
     
         
         # CONEXION DE BOTONES
@@ -98,14 +99,30 @@ class Ui(QMainWindow):
         self.select_CBM.setEnabled(False) 
         cant_muestras = int(self.Combobox_3.currentText())
         self.consola.setText('Cantidad de muestras: ' + str(cant_muestras))
-    
+        
+  
     
     def iniciar_proceso(self):
         if self.Selector == 0:
-            self.calculo_CBM()
+            cant_muestras = int(self.Combobox_3.currentText())
+            intervalos_s: float = 1.0
+            self.consola.setText(str(cant_muestras))
+            KEI_V, KEI_U, UT_V, UT_U = run_dual(reads=cant_muestras, interval=intervalos_s)
+            self.consola.setText('FLAG 1')
+            return KEI_V, KEI_U, UT_V, UT_U
+            
             
         elif self.Selector == 1:
-            self.calculo_TBM()
+            cant_muestras = int(self.Combobox_3.currentText())
+            intervalos_s: float = 1.0
+            self.consola.setText(str(cant_muestras))
+            KEI_V, KEI_U, UT_V, UT_U = run_dual(reads=cant_muestras, interval=intervalos_s)
+            self.consola.setText('FLAG 2')
+            return KEI_V, KEI_U, UT_V, UT_U
+        
+            
+            
+    
             
 
     def calculo_TBM(self):

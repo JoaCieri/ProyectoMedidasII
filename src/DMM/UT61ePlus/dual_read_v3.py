@@ -41,7 +41,8 @@ KEI_MEAS = ":MEAS:VOLT:DC?"
 KEI_MODE = "VDC"
 KEI_UNIT = "V"
 
-def reader_keithley(n_reads=DEFAULT_READS, interval=DEFAULT_INTERVAL):
+def reader_keithley(n_reads, interval):
+    
     import pyvisa
     buffer = deque(maxlen=BUF_MAXLEN)
 
@@ -119,7 +120,7 @@ def parse_ut_line(raw: str):
     return val, unit, mode
 
 # ===================== UT61E+ =====================
-def reader_ut61e(n_reads=DEFAULT_READS, interval=DEFAULT_INTERVAL):
+def reader_ut61e(n_reads, interval):
     from ut61eplus import UT61EPLUS
     dmm = UT61EPLUS()
     try:
@@ -161,7 +162,9 @@ def reader_ut61e(n_reads=DEFAULT_READS, interval=DEFAULT_INTERVAL):
         except Exception: pass
 
 # ===================== MAIN / API =====================
-def run_dual(reads=DEFAULT_READS, interval=DEFAULT_INTERVAL):
+def run_dual(reads, interval):
+    #PRUEBA
+    print(f"{reads}")
     with print_lock:
         print(f"[i] Lecturas={reads}  Intervalo={interval}s")
         print(f"[i] Keithley en modo fijo: {KEI_MODE} ({KEI_UNIT})")
