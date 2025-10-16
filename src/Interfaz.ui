@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>983</width>
-    <height>502</height>
+    <width>1071</width>
+    <height>634</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -171,7 +171,7 @@ border-color: rgb(0, 0, 0);</string>
      <rect>
       <x>310</x>
       <y>90</y>
-      <width>291</width>
+      <width>411</width>
       <height>31</height>
      </rect>
     </property>
@@ -187,7 +187,7 @@ border-color: rgb(0, 0, 0);</string>
      <rect>
       <x>320</x>
       <y>140</y>
-      <width>271</width>
+      <width>401</width>
       <height>151</height>
      </rect>
     </property>
@@ -202,7 +202,7 @@ border-color: rgb(0, 0, 0);</string>
    <widget class="QLabel" name="label_7">
     <property name="geometry">
      <rect>
-      <x>620</x>
+      <x>740</x>
       <y>90</y>
       <width>291</width>
       <height>31</height>
@@ -218,7 +218,7 @@ border-color: rgb(0, 0, 0);</string>
    <widget class="QPushButton" name="select_TBM">
     <property name="geometry">
      <rect>
-      <x>660</x>
+      <x>780</x>
       <y>190</y>
       <width>101</width>
       <height>31</height>
@@ -234,7 +234,7 @@ border-color: rgb(0, 0, 0);</string>
    <widget class="QPushButton" name="select_CBM">
     <property name="geometry">
      <rect>
-      <x>770</x>
+      <x>890</x>
       <y>190</y>
       <width>101</width>
       <height>31</height>
@@ -250,7 +250,7 @@ border-color: rgb(0, 0, 0);</string>
    <widget class="QPushButton" name="proceso">
     <property name="geometry">
      <rect>
-      <x>700</x>
+      <x>820</x>
       <y>230</y>
       <width>131</width>
       <height>51</height>
@@ -266,7 +266,7 @@ border-color: rgb(0, 0, 0);</string>
    <widget class="QPushButton" name="salir">
     <property name="geometry">
      <rect>
-      <x>390</x>
+      <x>460</x>
       <y>310</y>
       <width>131</width>
       <height>51</height>
@@ -364,7 +364,7 @@ border-color: rgb(0, 0, 0);</string>
    <widget class="QComboBox" name="Combobox_3">
     <property name="geometry">
      <rect>
-      <x>710</x>
+      <x>830</x>
       <y>140</y>
       <width>121</width>
       <height>31</height>
@@ -402,7 +402,7 @@ border-color: rgb(0, 0, 0);</string>
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>983</width>
+     <width>1071</width>
      <height>26</height>
     </rect>
    </property>

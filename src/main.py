@@ -10,9 +10,35 @@ from PyQt5.QtWidgets import QMainWindow, QApplication, QDialog, QFileDialog
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 from serial.tools import list_ports
-from DMM.UT61ePlus.dual_read_v3 import run_dual
 
 print("Proyecto Medición de Resistencias - Grupo 1")
+
+def _es_volt(u: str) -> bool:
+    return str(u).strip().upper().startswith("V")
+
+def _es_corr(u: str) -> bool:
+    return str(u).strip().upper().startswith("A")
+
+def _to_float(x):
+    try:
+        return float(str(x).replace(",", "."))
+    except Exception:
+        return float("nan")
+
+def _armar_vectores_VI(KEI_VEC, KEI_UNITS, UT_VEC, UT_UNITS):
+    n = min(len(KEI_VEC), len(KEI_UNITS), len(UT_VEC), len(UT_UNITS))
+    v_vec, i_vec = [], []
+    for kv, ku, uv, uu in zip(KEI_VEC[:n], KEI_UNITS[:n], UT_VEC[:n], UT_UNITS[:n]):
+        kvf, uvf = _to_float(kv), _to_float(uv)
+        # Voltaje por unidad
+        v_val = kvf if _es_volt(ku) else (uvf if _es_volt(uu) else float("nan"))
+        # Corriente por unidad
+        i_val = kvf if _es_corr(ku) else (uvf if _es_corr(uu) else float("nan"))
+        v_vec.append(v_val)
+        i_vec.append(i_val)
+    return v_vec, i_vec
+
+
 
 class Ui(QMainWindow):
 
@@ -91,6 +117,7 @@ class Ui(QMainWindow):
         self.select_TBM.setEnabled(False)
         cant_muestras = int(self.Combobox_3.currentText())
         self.consola.setText('Cantidad de muestras: ' + str(cant_muestras))
+        cant_muestras = 0
         
               
     def TBM(self):
@@ -99,36 +126,102 @@ class Ui(QMainWindow):
         self.select_CBM.setEnabled(False) 
         cant_muestras = int(self.Combobox_3.currentText())
         self.consola.setText('Cantidad de muestras: ' + str(cant_muestras))
+        cant_muestras = 0
         
-  
+    def _get_cant_mediciones(self, default=10):
+        """
+        Intenta obtener la cantidad de mediciones desde distintos widgets comunes.
+        Acepta QComboBox (currentText) o QSpinBox (value). Si no encuentra nada,
+        devuelve 'default'.
+        """
+        candidatos = [
+            "Combobox_3", "comboBox_3", "comboBox", "ComboBox",
+            "cb_muestras", "CB_muestras", "cmbMuestras",
+            "spinBox_muestras", "SpinBox_muestras", "spinBox", "SpinBox",
+        ]
+        for name in candidatos:
+            if hasattr(self, name):
+                w = getattr(self, name)
+                # QComboBox
+                if hasattr(w, "currentText"):
+                    try:
+                        return int(w.currentText())
+                    except Exception:
+                        pass
+                # QSpinBox / QDoubleSpinBox
+                if hasattr(w, "value"):
+                    try:
+                        return int(w.value())
+                    except Exception:
+                        pass
+        return int(default)
+
     
     def iniciar_proceso(self):
         if self.Selector == 0:
-            cant_muestras = int(self.Combobox_3.currentText())
-            intervalos_s: float = 1.0
-            self.consola.setText(str(cant_muestras))
-            KEI_V, KEI_U, UT_V, UT_U = run_dual(reads=cant_muestras, interval=intervalos_s)
-            self.consola.setText('FLAG 1')
-            return KEI_V, KEI_U, UT_V, UT_U
+            self.medir_ut_y_mostrar_promedio()
             
             
         elif self.Selector == 1:
-            cant_muestras = int(self.Combobox_3.currentText())
-            intervalos_s: float = 1.0
-            self.consola.setText(str(cant_muestras))
-            KEI_V, KEI_U, UT_V, UT_U = run_dual(reads=cant_muestras, interval=intervalos_s)
-            self.consola.setText('FLAG 2')
-            return KEI_V, KEI_U, UT_V, UT_U
+            self.medir_ut_y_mostrar_promedio()
         
             
-            
-    
-            
+                
 
-    def calculo_TBM(self):
-        pass
+    def medir_ut_y_mostrar_promedio(self):
+        """
+        Mide SOLO con UT61E+ usando DMM/UT61ePlus/dual_read_v3.run_dual,
+        calcula el promedio y lo muestra en el QTextEdit 'consola'.
+        """
+        try:
+            # 1) Cantidad de mediciones robusta
+            cant_mediciones = self._get_cant_mediciones(default=10)
+            intervalo_s = 1.0
     
-    def calculo_CBM(self):
+            # 2) Import del módulo (ruta a 'src' por si no estás lanzando como paquete)
+            import sys, os
+            sys.path.append(r"C:\Users\setup\OneDrive\Desktop\otros\UTN\ProyectoMedidasII\src")
+            from DMM.UT61ePlus.dual_read_v3 import run_dual
+    
+            # 3) Ejecutar medición
+            self.consola.setText("Midiendo con UT61E+...")
+            UT_VEC, UT_UNITS = run_dual(reads=cant_mediciones, interval=intervalo_s)  # tu run_dual devuelve (UT_VEC, UT_UNITS) en mi versión; si en la tuya devuelve 4, ajusta abajo
+    
+            # Si tu run_dual devuelve 4 elementos (KEI_VEC, KEI_UNITS, UT_VEC, UT_UNITS), descomenta:
+            # _, _, UT_VEC, UT_UNITS = run_dual(reads=cant_mediciones, interval=intervalo_s)
+    
+            # 4) Promedio seguro
+            def _to_float(x):
+                try:
+                    return float(str(x).replace(",", "."))
+                except Exception:
+                    return float("nan")
+    
+            valores = [_to_float(v) for v in UT_VEC if str(v).strip()]
+            unidad  = (UT_UNITS[0] if UT_UNITS else "").strip()
+    
+            if not valores:
+                self.consola.setText("[UT61E+] No se obtuvieron valores válidos.")
+                return
+    
+            prom = sum(valores) / len(valores)
+            self.consola.setText(
+                f"[UT61E+] Mediciones: {len(valores)}\n"
+                f"[UT61E+] Promedio: {prom:.6f} {unidad}\n"                
+            )
+    
+        except ModuleNotFoundError as e:
+            self.consola.setText(
+                "No se pudo importar DMM/UT61ePlus/dual_read_v3.py\n"
+                "Asegurate de instalar 'hidapi' en el MISMO entorno y que la ruta a 'src' esté en sys.path.\n"
+                f"Detalle: {e}"
+            )
+        except Exception as e:
+            self.consola.setText(f"Error en la medición UT61E+: {e}")
+
+                                    
+    
+    def calculo_TBM(self):
         pass
     
     def obtener_k_95(Vef):
