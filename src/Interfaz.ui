@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1071</width>
-    <height>634</height>
+    <width>1067</width>
+    <height>625</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -17,9 +17,9 @@
    <widget class="QLabel" name="label_3">
     <property name="geometry">
      <rect>
-      <x>330</x>
+      <x>230</x>
       <y>10</y>
-      <width>261</width>
+      <width>601</width>
       <height>51</height>
      </rect>
     </property>
@@ -35,141 +35,10 @@ background-color: rgb(50, 130, 45);</string>
      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;INTERFAZ GRAFICA MEII&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
     </property>
    </widget>
-   <widget class="QLabel" name="label_2">
-    <property name="geometry">
-     <rect>
-      <x>10</x>
-      <y>90</y>
-      <width>261</width>
-      <height>31</height>
-     </rect>
-    </property>
-    <property name="styleSheet">
-     <string notr="true">background-color: rgb(187, 255, 189);</string>
-    </property>
-    <property name="text">
-     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;PANEL DE PUERTOS&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-    </property>
-   </widget>
-   <widget class="QLabel" name="etiqueta">
-    <property name="geometry">
-     <rect>
-      <x>30</x>
-      <y>130</y>
-      <width>221</width>
-      <height>41</height>
-     </rect>
-    </property>
-    <property name="styleSheet">
-     <string notr="true">background-color: rgb(255, 255, 255);
-border-color: rgb(0, 0, 0);</string>
-    </property>
-    <property name="text">
-     <string/>
-    </property>
-   </widget>
-   <widget class="QPushButton" name="scan_port">
-    <property name="geometry">
-     <rect>
-      <x>90</x>
-      <y>180</y>
-      <width>101</width>
-      <height>31</height>
-     </rect>
-    </property>
-    <property name="styleSheet">
-     <string notr="true">background-color: rgb(255, 255, 255);</string>
-    </property>
-    <property name="text">
-     <string>Escanear puertos</string>
-    </property>
-   </widget>
-   <widget class="QComboBox" name="Combobox">
-    <property name="geometry">
-     <rect>
-      <x>30</x>
-      <y>230</y>
-      <width>101</width>
-      <height>31</height>
-     </rect>
-    </property>
-    <item>
-     <property name="text">
-      <string>Select Port...</string>
-     </property>
-    </item>
-    <item>
-     <property name="text">
-      <string>COM1</string>
-     </property>
-    </item>
-    <item>
-     <property name="text">
-      <string>COM2</string>
-     </property>
-    </item>
-    <item>
-     <property name="text">
-      <string>COM3</string>
-     </property>
-    </item>
-    <item>
-     <property name="text">
-      <string>COM4</string>
-     </property>
-    </item>
-    <item>
-     <property name="text">
-      <string>COM5</string>
-     </property>
-    </item>
-    <item>
-     <property name="text">
-      <string>COM6</string>
-     </property>
-    </item>
-    <item>
-     <property name="text">
-      <string>COM7</string>
-     </property>
-    </item>
-   </widget>
-   <widget class="QPushButton" name="conectar">
-    <property name="geometry">
-     <rect>
-      <x>20</x>
-      <y>280</y>
-      <width>111</width>
-      <height>31</height>
-     </rect>
-    </property>
-    <property name="styleSheet">
-     <string notr="true">background-color: rgb(255, 255, 255);</string>
-    </property>
-    <property name="text">
-     <string>Conectar puerto 1</string>
-    </property>
-   </widget>
-   <widget class="QPushButton" name="cerrar_port">
-    <property name="geometry">
-     <rect>
-      <x>30</x>
-      <y>330</y>
-      <width>91</width>
-      <height>31</height>
-     </rect>
-    </property>
-    <property name="styleSheet">
-     <string notr="true">background-color: rgb(255, 255, 255);</string>
-    </property>
-    <property name="text">
-     <string>Cerrar puerto 1</string>
-    </property>
-   </widget>
    <widget class="QLabel" name="label_6">
     <property name="geometry">
      <rect>
-      <x>310</x>
+      <x>40</x>
       <y>90</y>
       <width>411</width>
       <height>31</height>
@@ -185,9 +54,9 @@ border-color: rgb(0, 0, 0);</string>
    <widget class="QLabel" name="consola">
     <property name="geometry">
      <rect>
-      <x>320</x>
-      <y>140</y>
-      <width>401</width>
+      <x>40</x>
+      <y>130</y>
+      <width>411</width>
       <height>151</height>
      </rect>
     </property>
@@ -202,8 +71,8 @@ border-color: rgb(0, 0, 0);</string>
    <widget class="QLabel" name="label_7">
     <property name="geometry">
      <rect>
-      <x>740</x>
-      <y>90</y>
+      <x>590</x>
+      <y>100</y>
       <width>291</width>
       <height>31</height>
      </rect>
@@ -218,8 +87,8 @@ border-color: rgb(0, 0, 0);</string>
    <widget class="QPushButton" name="select_TBM">
     <property name="geometry">
      <rect>
-      <x>780</x>
-      <y>190</y>
+      <x>620</x>
+      <y>180</y>
       <width>101</width>
       <height>31</height>
      </rect>
@@ -234,8 +103,8 @@ border-color: rgb(0, 0, 0);</string>
    <widget class="QPushButton" name="select_CBM">
     <property name="geometry">
      <rect>
-      <x>890</x>
-      <y>190</y>
+      <x>730</x>
+      <y>180</y>
       <width>101</width>
       <height>31</height>
      </rect>
@@ -250,9 +119,9 @@ border-color: rgb(0, 0, 0);</string>
    <widget class="QPushButton" name="proceso">
     <property name="geometry">
      <rect>
-      <x>820</x>
-      <y>230</y>
-      <width>131</width>
+      <x>420</x>
+      <y>330</y>
+      <width>221</width>
       <height>51</height>
      </rect>
     </property>
@@ -267,7 +136,7 @@ border-color: rgb(0, 0, 0);</string>
     <property name="geometry">
      <rect>
       <x>460</x>
-      <y>310</y>
+      <y>510</y>
       <width>131</width>
       <height>51</height>
      </rect>
@@ -279,92 +148,10 @@ border-color: rgb(0, 0, 0);</string>
      <string>SALIR</string>
     </property>
    </widget>
-   <widget class="QComboBox" name="Combobox_2">
-    <property name="geometry">
-     <rect>
-      <x>160</x>
-      <y>230</y>
-      <width>101</width>
-      <height>31</height>
-     </rect>
-    </property>
-    <item>
-     <property name="text">
-      <string>Select Port...</string>
-     </property>
-    </item>
-    <item>
-     <property name="text">
-      <string>COM1</string>
-     </property>
-    </item>
-    <item>
-     <property name="text">
-      <string>COM2</string>
-     </property>
-    </item>
-    <item>
-     <property name="text">
-      <string>COM3</string>
-     </property>
-    </item>
-    <item>
-     <property name="text">
-      <string>COM4</string>
-     </property>
-    </item>
-    <item>
-     <property name="text">
-      <string>COM5</string>
-     </property>
-    </item>
-    <item>
-     <property name="text">
-      <string>COM6</string>
-     </property>
-    </item>
-    <item>
-     <property name="text">
-      <string>COM7</string>
-     </property>
-    </item>
-   </widget>
-   <widget class="QPushButton" name="conectar_2">
-    <property name="geometry">
-     <rect>
-      <x>150</x>
-      <y>280</y>
-      <width>111</width>
-      <height>31</height>
-     </rect>
-    </property>
-    <property name="styleSheet">
-     <string notr="true">background-color: rgb(255, 255, 255);</string>
-    </property>
-    <property name="text">
-     <string>Conectar puerto 2</string>
-    </property>
-   </widget>
-   <widget class="QPushButton" name="cerrar_port_2">
-    <property name="geometry">
-     <rect>
-      <x>160</x>
-      <y>330</y>
-      <width>91</width>
-      <height>31</height>
-     </rect>
-    </property>
-    <property name="styleSheet">
-     <string notr="true">background-color: rgb(255, 255, 255);</string>
-    </property>
-    <property name="text">
-     <string>Cerrar puerto 2</string>
-    </property>
-   </widget>
    <widget class="QComboBox" name="Combobox_3">
     <property name="geometry">
      <rect>
-      <x>830</x>
+      <x>670</x>
       <y>140</y>
       <width>121</width>
       <height>31</height>
@@ -396,14 +183,30 @@ border-color: rgb(0, 0, 0);</string>
      </property>
     </item>
    </widget>
+   <widget class="QPushButton" name="boton_medir">
+    <property name="geometry">
+     <rect>
+      <x>620</x>
+      <y>220</y>
+      <width>221</width>
+      <height>51</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">background-color: rgb(255, 255, 255);</string>
+    </property>
+    <property name="text">
+     <string>PRUEBA DE MEDICIONES</string>
+    </property>
+   </widget>
   </widget>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1071</width>
-     <height>26</height>
+     <width>1067</width>
+     <height>21</height>
     </rect>
    </property>
   </widget>

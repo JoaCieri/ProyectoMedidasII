@@ -30,61 +30,31 @@ class Ui(QMainWindow):
 
         # PARÁMETROS DE LA INTERFAZ
         self.showMaximized()
-        self.cerrar_port.setEnabled(False)
-        self.cerrar_port_2.setEnabled(False)
         self.proceso.setEnabled(False)
 
         # VARIABLES (respetadas)
         self.muestras_I = None
         self.muestras_V = None
+        self.cant_muestras = 0
         self.flag = 0
         self.flag1 = 0
         self.flag2 = 0
         self.flag3 = 0
         self.flag4 = 0
-        self.Selector = 1
+        self.selector = 1
+        self.vector_V = np.array([], dtype=float)
+        self.vector_I = np.array([], dtype=float)
 
         # CONEXIÓN DE BOTONES (respetada)
-        self.scan_port.clicked.connect(self.scanport)
-        self.conectar.clicked.connect(self.conectarport1)
-        self.conectar_2.clicked.connect(self.conectarport2)
+
         self.proceso.clicked.connect(self.iniciar_proceso)
+        self.boton_medir.clicked.connect(self.medir)
         self.select_CBM.clicked.connect(self.CBM)
         self.select_TBM.clicked.connect(self.TBM)
         self.salir.clicked.connect(self.salir_ui)
 
-    # ----------------------- Puertos -----------------------
-    def scanport(self):
-        puertos = [p.device for p in list_ports.comports()]
-        disponibles = ", ".join(puertos) if puertos else "ninguno"
-        self.etiqueta.setText(f"Puertos disponibles: {disponibles}")
-
-    def conectarport1(self):
-        print("Conectar puerto serie 1")
-        port = self.Combobox.currentText()
-        baudrate = 115200
-        self.ard1 = serial.Serial(port=port, baudrate=baudrate)
-        self.etiqueta.setText("Puerto 1 conectado a: " + port)
-        self.conectar.setEnabled(False)
-        self.flag2 = 1
-        self.cerrar_port.setEnabled(True)
-        self.flag1 = 1
-
-    def conectarport2(self):
-        print("Conectar puerto serie 2")
-        port = self.Combobox_2.currentText()
-        baudrate = 115200
-        self.ard2 = serial.Serial(port=port, baudrate=baudrate)
-        self.etiqueta.setText("Puerto 2 conectado a: " + port)
-        self.conectar_2.setEnabled(False)
-        self.flag4 = 1
-        self.cerrar_port_2.setEnabled(True)
-        self.flag3 = 1
-
-        if self.flag4 and self.flag2:
-            self.select_CBM.setEnabled(True)
-            self.select_TBM.setEnabled(True)
-
+    # ----------------------- Salida -----------------------
+    
     def salir_ui(self):
         self.close()
 
@@ -94,20 +64,20 @@ class Ui(QMainWindow):
         self.proceso.setEnabled(True)
         self.select_TBM.setEnabled(False)
         try:
-            cant_muestras = int(self.Combobox_3.currentText())
+            self.cant_muestras = int(self.Combobox_3.currentText())
         except Exception:
-            cant_muestras = 10
-        self.consola.setText('Cantidad de muestras: ' + str(cant_muestras))
+            self.cant_muestras = 10
+        self.consola.setText('Cantidad de muestras: ' + str(self.cant_muestras))
 
     def TBM(self):
         self.selector = 1
         self.proceso.setEnabled(True)
         self.select_CBM.setEnabled(False)
         try:
-            cant_muestras = int(self.Combobox_3.currentText())
+            self.cant_muestras = int(self.Combobox_3.currentText())
         except Exception:
-            cant_muestras = 10
-        self.consola.setText('Cantidad de muestras: ' + str(cant_muestras))
+            self.cant_muestras = 10
+        self.consola.setText('Cantidad de muestras: ' + str(self.cant_muestras))
 
     def _get_cant_mediciones(self, default=10):
         """
@@ -136,16 +106,50 @@ class Ui(QMainWindow):
                     except Exception:
                         pass
         return int(default)
+    # ----------------------- Prueba -----------------------
+    def medir(self):
+        """
+        Lee ambos multímetros una sola vez y muestra las lecturas en la consola.
+        Guarda los valores en self.vector_V y self.vector_I.
+        """
+        try:
+            cant = self.cant_muestras   
+            intervalo = 1.0
 
+            SRC = os.path.abspath(os.path.join(os.path.dirname(__file__)))
+            if SRC not in sys.path:
+                sys.path.append(SRC)
+
+            from DMM.UT61ePlus.dual_read_v4 import run_dual
+
+            self.consola.setText("⏳ Midiendo...")
+
+            KEI_VEC, KEI_UNITS, UT_VEC, UT_UNITS = run_dual(reads=cant, interval=intervalo)
+
+            # Asumimos: UT61E+ = V, KEITHLEY = I
+            N = min(len(UT_VEC), len(KEI_VEC))
+            self.vector_I = np.array(UT_VEC[:N], dtype=float)
+            self.vector_V = np.array(KEI_VEC[:N], dtype=float)
+
+            # Imprimir resultados en consola
+            texto = "📊 Mediciones realizadas:\n"
+            for i in range(N):
+                texto += f"{i+1:02d}) V = {self.vector_V[i]:.6f} V   |   I = {self.vector_I[i]:.6f} A\n"
+
+            self.consola.setText(texto)
+
+        except Exception as e:
+            self.consola.setText(f"⚠ Error en medición: {e}")
+    
     # ----------------------- Proceso -----------------------
     def iniciar_proceso(self):
         """
         Mantengo tu flujo por Selector, pero ambas ramas llaman
         a la medición dual para mostrar promedios.
         """
-        if self.Selector == 0:
+        if self.selector == 0:
             self.medir_dos_y_mostrar_promedios()
-        elif self.Selector == 1:
+        elif self.selector == 1:
             self.medir_dos_y_mostrar_promedios()
 
     def medir_dos_y_mostrar_promedios(self):
@@ -169,6 +173,10 @@ class Ui(QMainWindow):
 
             self.consola.setText("⏳ Midiendo UT61E+ y KEITHLEY…")
             KEI_VEC, KEI_UNITS, UT_VEC, UT_UNITS = run_dual(reads=cant, interval=intervalo)
+            
+            N = min(len(UT_VEC), len(KEI_VEC))  # por si difieren en longitud
+            self.vector_I = np.array(UT_VEC[:N], dtype=float)
+            self.vector_V = np.array(KEI_VEC[:N], dtype=float)
 
             # promedios
             p_kei = promedio_keithley()
