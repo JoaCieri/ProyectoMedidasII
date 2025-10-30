@@ -32,7 +32,7 @@ class Ui(QMainWindow):
         uic.loadUi('Interfaz.ui', self)
 
         # PARÁMETROS DE LA INTERFAZ
-        self.showMaximized()
+        #self.showMaximized()
         self.proceso.setEnabled(False)
 
         # VARIABLES (respetadas)
@@ -46,16 +46,17 @@ class Ui(QMainWindow):
         self.flag4 = 0
         self.selector = 1
         
-        #PRUEBA
+        self.vector_V = np.array([], dtype=float)
+        self.vector_I = np.array([], dtype=float)
         
-        #self.vector_V = np.array([], dtype=float)
-        #self.vector_I = np.array([], dtype=float)
-        self.vector_V = [21.985 , 21.985 , 21.985 , 21.985 , 21.985]
-        self.vector_I = [2.196e-3, 2.197e-3, 2.196e-3, 2.197e-3, 2.196e-3]
-        # CONEXIÓN DE BOTONES (respetada)
+        #PRUEBA        
+        #self.vector_V = [21.985 , 21.985 , 21.985 , 21.985 , 21.985]
+        #self.vector_I = [2.196e-3, 2.197e-3, 2.196e-3, 2.197e-3, 2.196e-3]
+        
+        # CONEXIÓN DE BOTONES 
 
         self.proceso.clicked.connect(self.iniciar_proceso)
-        self.boton_medir.clicked.connect(self.medir)
+        self.boton_medir.clicked.connect(self.medir_dos_y_mostrar_promedios)
         self.select_CBM.clicked.connect(self.CBM)
         self.select_TBM.clicked.connect(self.TBM)
         self.salir.clicked.connect(self.salir_ui)
@@ -69,22 +70,20 @@ class Ui(QMainWindow):
     def CBM(self):
         self.selector = 0
         self.proceso.setEnabled(True)
-        self.select_TBM.setEnabled(False)
         try:
             self.cant_muestras = int(self.Combobox_3.currentText())
         except Exception:
             self.cant_muestras = 10
-        self.consola.setText('Cantidad de muestras: ' + str(self.cant_muestras))
+        self.consola.setText('Metodo CBM con Cantidad de muestras = ' + str(self.cant_muestras))
 
     def TBM(self):
         self.selector = 1
         self.proceso.setEnabled(True)
-        self.select_CBM.setEnabled(False)
         try:
             self.cant_muestras = int(self.Combobox_3.currentText())
         except Exception:
             self.cant_muestras = 10
-        self.consola.setText('Cantidad de muestras: ' + str(self.cant_muestras))
+        self.consola.setText('Metodo TBM con Cantidad de muestras = ' + str(self.cant_muestras))
 
 
     # ----------------------- Prueba -----------------------
@@ -128,12 +127,9 @@ class Ui(QMainWindow):
         Mantengo tu flujo por Selector, pero ambas ramas llaman
         a la medición dual para mostrar promedios.
         """
-        if self.selector == 0:
-            #self.medir_dos_y_mostrar_promedios()
-            self.calculo()
-        elif self.selector == 1:
-            #self.medir_dos_y_mostrar_promedios()
-            self.calculo()
+        self.medir_dos_y_mostrar_promedios()
+        self.calculo()
+
 
     def medir_dos_y_mostrar_promedios(self):
         """
@@ -158,6 +154,7 @@ class Ui(QMainWindow):
             KEI_VEC, KEI_UNITS, UT_VEC, UT_UNITS = run_dual(reads=cant, interval=intervalo)
             
             N = min(len(UT_VEC), len(KEI_VEC))  # por si difieren en longitud
+            
             self.vector_I = np.array(UT_VEC[:N], dtype=float)
             self.vector_V = np.array(KEI_VEC[:N], dtype=float)
 
@@ -192,15 +189,9 @@ class Ui(QMainWindow):
         
         if self.selector == 0: #CBM
             media_i_cbm = statistics.mean(self.vector_I)
-            print("Media de I CBM =", media_i_cbm)
-            entero_i_cbm = cuatro_dig_sig(media_i_cbm)
-            print("recortado=", entero_i_cbm)
-            
-            media_v_cbm = statistics.mean(self.vector_V)
-            print("Media de V CBM =", media_v_cbm)
-            
+            entero_i_cbm = cuatro_dig_sig(media_i_cbm)         
+            media_v_cbm = statistics.mean(self.vector_V)         
             media_r_cbm = media_v_cbm / media_i_cbm
-            print("Media de R =", media_r_cbm)
             
             # Corrección por RA (voltímetro mide R+RA, amperímetro en serie)
             rcorr_cbm = media_r_cbm - ra
@@ -219,13 +210,9 @@ class Ui(QMainWindow):
             rep_i_cbm = (desvio_i_cbm*100)/(math.sqrt(len(self.vector_I))*media_i_cbm)
             
             entero_v_cbm = cuatro_dig_sig(media_v_cbm)
-            print("Entero V=", entero_v_cbm)
-            
+
             cuenta_v_cbm = (cuenta_v*100)/(math.sqrt(3)*entero_v_cbm)
-            cuenta_i_cbm = (cuenta_i*100)/(math.sqrt(3)*entero_i_cbm)
-            print("Cuenta V=", cuenta_v_cbm)
-            print("Cuenta I=", cuenta_i_cbm)
-            
+            cuenta_i_cbm = (cuenta_i*100)/(math.sqrt(3)*entero_i_cbm)  
             
             Coef_sens_vind_cbm = 1/(1-(ra/media_r_cbm))
             Coef_sens_iind_cbm = 1/((ra/media_r_cbm)-1)
@@ -238,21 +225,12 @@ class Ui(QMainWindow):
             f_ins_i_cbm   = pow(Coef_sens_iind_cbm*fuente_instru_i,2)
             f_cuenta_i_cbm= pow(Coef_sens_iind_cbm*cuenta_i_cbm,2)
             f_ra_cbm      = pow((fuente_ra*Coef_sens_ra_cbm)/math.sqrt(3),2)
-            
-            print("1=", f_v_cbm)
-            print("2=", f_ins_v_cbm)
-            print("3=", f_cuenta_v_cbm)
-            print("4=", f_i_cbm)
-            print("5=", f_ins_i_cbm)
-            print("6=", f_cuenta_i_cbm)
-            print("7=", f_ra_cbm)
-            
+                        
             Uc_cbm = math.sqrt(
                 f_v_cbm + f_ins_v_cbm + f_cuenta_v_cbm +
                 f_i_cbm + f_ins_i_cbm + f_cuenta_i_cbm +
                 f_ra_cbm
             )
-            print("Uc =", Uc_cbm)
             
             Vef_cbm = pow(Uc_cbm,4)/((pow(f_v_cbm,2)/len(self.vector_V)) + (pow(f_i_cbm,2)/len(self.vector_I)))
             print("Vef= ", Vef_cbm)
@@ -265,17 +243,29 @@ class Ui(QMainWindow):
             print(f"R: {rcorr_cbm} Ω ± {U_exp_abs} Ω  (±{U_exp_cbm} %)")
             self.consola.setText(f"R = {rcorr_cbm:.4f} Ω ± {U_exp_abs:.4f} Ω  (±{U_exp_cbm:.2f} %)")
             
+            print("Media de I CBM =", media_i_cbm)
+            print("recortado=", entero_i_cbm)
+            print("Media de V CBM =", media_v_cbm)
+            print("Media de R =", media_r_cbm)
+            print("Entero V=", entero_v_cbm)            
+            print("Cuenta V=", cuenta_v_cbm)
+            print("Cuenta I=", cuenta_i_cbm)
+            print("1=", f_v_cbm)
+            print("2=", f_ins_v_cbm)
+            print("3=", f_cuenta_v_cbm)
+            print("4=", f_i_cbm)
+            print("5=", f_ins_i_cbm)
+            print("6=", f_cuenta_i_cbm)
+            print("7=", f_ra_cbm)
+            print("Uc =", Uc_cbm)
+            
         elif self.selector == 1: #TBM
         
             media_i_tbm = statistics.mean(self.vector_I)
-            print("Media de I TBM =", media_i_tbm)
             entero_i = cuatro_dig_sig(media_i_tbm)
-            print("recortado=", entero_i)
             media_v_tbm = statistics.mean(self.vector_V)
-            print("Media de V TBM =", media_v_tbm)
             
             media_r_tbm=media_v_tbm/media_i_tbm
-            print("Media de R =", media_r_tbm)
             
             errorm_tbm = (-media_r_tbm)/rv
             rcorr_tbm=media_r_tbm/(1+errorm_tbm)
@@ -293,13 +283,9 @@ class Ui(QMainWindow):
             rep_i_tbm = (desvio_i_tbm*100)/(math.sqrt(len(self.vector_I))*media_i_tbm) 
             
             entero_v = cuatro_dig_sig(media_v_tbm)
-            
-            print("Entero V=", entero_v)
-            
+                    
             cuenta_v_tbm=(cuenta_v*100)/(math.sqrt(3)*entero_v) 
             cuenta_i_tbm=(cuenta_i*100)/(math.sqrt(3)*entero_i)
-            print("Cuenta V=", cuenta_v_tbm)
-            print("Cuenta I=", cuenta_i_tbm)    
             
             Coef_sens_vind_tbm=1/(1-(media_r_tbm/rv))
             Coef_sens_iind_tbm=1/((media_r_tbm/rv)-1)
@@ -311,23 +297,11 @@ class Ui(QMainWindow):
             f_i=pow(Coef_sens_iind_tbm*rep_i_tbm,2)
             f_ins_i=pow(Coef_sens_iind_tbm*fuente_instru_i,2)
             f_cuenta_i=pow(Coef_sens_iind_tbm*cuenta_i_tbm,2)
-            f_rv=pow((fuente_rv*Coef_sens_rv_tbm)/math.sqrt(3),2)
-            print("1=", f_v)
-            print("2=", f_ins_v)
-            print("3=", f_cuenta_v)
-            print("4=", f_i)
-            print("5=", f_ins_i)
-            print("6=", f_cuenta_i)
-            print("7=", f_rv)
-            
-            
+            f_rv=pow((fuente_rv*Coef_sens_rv_tbm)/math.sqrt(3),2)            
             
             Uc= math.sqrt(f_v+f_ins_v+f_cuenta_v+f_i+f_ins_i+f_cuenta_i+f_rv)
-            print("Uc =", Uc)
             
-            Vef = pow(Uc,4)/((pow(f_v, 2)/(len(self.vector_V)))+(pow(f_i, 2)/(len(self.vector_I)))) 
-            print("Vef= ", Vef)
-            
+            Vef = pow(Uc,4)/((pow(f_v, 2)/(len(self.vector_V)))+(pow(f_i, 2)/(len(self.vector_I))))             
             K_tbm = obtener_k_95(Vef)
             
             U_exp_tbm = K_tbm * Uc
@@ -336,6 +310,22 @@ class Ui(QMainWindow):
             print(f"R: {rcorr_tbm} Ω ± {U_exp_abs} Ω  (±{U_exp_tbm} %)")
             self.consola.setText(f"R = {rcorr_tbm:.4f} Ω ± {U_exp_abs:.4f} Ω  (±{U_exp_tbm:.2f} %)")
 
+            print("Media de I TBM =", media_i_tbm)
+            print("recortado=", entero_i)
+            print("Media de V TBM =", media_v_tbm)
+            print("Media de R =", media_r_tbm)
+            print("Entero V=", entero_v)
+            print("Cuenta V=", cuenta_v_tbm)
+            print("Cuenta I=", cuenta_i_tbm)   
+            print("1=", f_v)
+            print("2=", f_ins_v)
+            print("3=", f_cuenta_v)
+            print("4=", f_i)
+            print("5=", f_ins_i)
+            print("6=", f_cuenta_i)
+            print("7=", f_rv)
+            print("Uc =", Uc)
+            print("Vef= ", Vef)
             
                         
 # ================== util fuera de la clase ==================
