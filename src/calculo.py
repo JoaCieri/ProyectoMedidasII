@@ -3,10 +3,6 @@ import statistics
 import math
 from decimal import Decimal
 
-from main import CBM
-from main import TBM
-
-
 ra = 0.45   # resistencia del amperímetro (ohm)
 rv = 10e6   # resistencia del voltímetro (ohm)
 fuente_instru_v= 5e-2/math.sqrt(3) #[%]
@@ -28,14 +24,10 @@ i_cbm = [2.191e-3, 2.189e-3, 2.190e-3, 2.188e-3, 2.191e-3]
 # Vector de tensiones CBM [V]
 v_cbm = [21.978, 21.978, 21.978, 21.978, 21.978]
 
-#Adquisicion de Datos
-def leer_vectores(cant_muestras: int, intervalos_s: float = 1.0):
-    KEI_V, KEI_U, UT_V, UT_U = run_dual(reads=cant_muestras, interval=intervalos_s)
-    return KEI_V, KEI_U, UT_V, UT_U
 
-if selector == 0 :
+if selector == 1 :
     
-    
+        
     media_i_tbm = statistics.mean(i_tbm)
     print("Media de I TBM =", media_i_tbm)
     x=Decimal(media_i_tbm)

@@ -5,6 +5,9 @@ import re
 import os
 import serial
 import numpy as np
+import statistics
+import math
+from decimal import Decimal
 
 from PyQt5 import uic
 from PyQt5.QtWidgets import QMainWindow, QApplication, QDialog, QFileDialog
@@ -42,9 +45,13 @@ class Ui(QMainWindow):
         self.flag3 = 0
         self.flag4 = 0
         self.selector = 1
-        self.vector_V = np.array([], dtype=float)
-        self.vector_I = np.array([], dtype=float)
-
+        
+        #PRUEBA
+        
+        #self.vector_V = np.array([], dtype=float)
+        #self.vector_I = np.array([], dtype=float)
+        self.vector_V = [21.985 , 21.985 , 21.985 , 21.985 , 21.985]
+        self.vector_I = [2.196e-3, 2.197e-3, 2.196e-3, 2.197e-3, 2.196e-3]
         # CONEXIÓN DE BOTONES (respetada)
 
         self.proceso.clicked.connect(self.iniciar_proceso)
@@ -79,33 +86,7 @@ class Ui(QMainWindow):
             self.cant_muestras = 10
         self.consola.setText('Cantidad de muestras: ' + str(self.cant_muestras))
 
-    def _get_cant_mediciones(self, default=10):
-        """
-        Intenta obtener la cantidad de mediciones desde distintos widgets comunes.
-        Acepta QComboBox (currentText) o QSpinBox (value). Si no encuentra nada,
-        devuelve 'default'.
-        """
-        candidatos = [
-            "Combobox_3", "comboBox_3", "comboBox", "ComboBox",
-            "cb_muestras", "CB_muestras", "cmbMuestras",
-            "spinBox_muestras", "SpinBox_muestras", "spinBox", "SpinBox",
-        ]
-        for name in candidatos:
-            if hasattr(self, name):
-                w = getattr(self, name)
-                # QComboBox
-                if hasattr(w, "currentText"):
-                    try:
-                        return int(w.currentText())
-                    except Exception:
-                        pass
-                # QSpinBox / QDoubleSpinBox
-                if hasattr(w, "value"):
-                    try:
-                        return int(w.value())
-                    except Exception:
-                        pass
-        return int(default)
+
     # ----------------------- Prueba -----------------------
     def medir(self):
         """
@@ -126,7 +107,7 @@ class Ui(QMainWindow):
 
             KEI_VEC, KEI_UNITS, UT_VEC, UT_UNITS = run_dual(reads=cant, interval=intervalo)
 
-            # Asumimos: UT61E+ = V, KEITHLEY = I
+            # Asumimos: UT61E+ = I, KEITHLEY = V
             N = min(len(UT_VEC), len(KEI_VEC))
             self.vector_I = np.array(UT_VEC[:N], dtype=float)
             self.vector_V = np.array(KEI_VEC[:N], dtype=float)
@@ -148,9 +129,11 @@ class Ui(QMainWindow):
         a la medición dual para mostrar promedios.
         """
         if self.selector == 0:
-            self.medir_dos_y_mostrar_promedios()
+            #self.medir_dos_y_mostrar_promedios()
+            self.calculo()
         elif self.selector == 1:
-            self.medir_dos_y_mostrar_promedios()
+            #self.medir_dos_y_mostrar_promedios()
+            self.calculo()
 
     def medir_dos_y_mostrar_promedios(self):
         """
@@ -158,7 +141,7 @@ class Ui(QMainWindow):
         Muestra los promedios en 'self.consola' usando setText.
         """
         try:
-            cant = self._get_cant_mediciones(10)
+            cant = self.cant_muestras
             intervalo = 1.0
 
             # importar runner dual (robusto: agrega src si hace falta)
@@ -195,14 +178,166 @@ class Ui(QMainWindow):
             self.consola.setText(f"Error en medición dual: {e}")
 
     # ------------------- Tus funciones ---------------------
-    def calculo_TBM(self):
-        pass
+    def calculo(self):
+        
+        ra = 0.45   # resistencia del amperímetro (ohm)
+        rv = 10e6   # resistencia del voltímetro (ohm)
+        fuente_instru_v= 5e-2/math.sqrt(3) #[%]
+        fuente_instru_i= 8e-2/math.sqrt(3) #[%]
+        fuente_rv= 5 #[%]
+        fuente_ra= 5 #[%]
+        cuenta_v=5
+        cuenta_i=20
+        eps = 1e-12  # umbral numérico
+        
+        if self.selector == 0: #CBM
+            media_i_cbm = statistics.mean(self.vector_I)
+            print("Media de I CBM =", media_i_cbm)
+            entero_i_cbm = cuatro_dig_sig(media_i_cbm)
+            print("recortado=", entero_i_cbm)
+            
+            media_v_cbm = statistics.mean(self.vector_V)
+            print("Media de V CBM =", media_v_cbm)
+            
+            media_r_cbm = media_v_cbm / media_i_cbm
+            print("Media de R =", media_r_cbm)
+            
+            # Corrección por RA (voltímetro mide R+RA, amperímetro en serie)
+            rcorr_cbm = media_r_cbm - ra
+            
+            if abs(1.0 - (ra/media_r_cbm)) < eps or abs(1.0 - (media_r_cbm/ra)) < eps:
+                mensaje = "⚠️ CBM: Rm ≈ RA → sensibilidades enormes. Revisar configuración."
+                print(mensaje)
+                self.consola.setText(mensaje)
+                raise ValueError(mensaje)
+            
+            # Desvíos (repetibilidad)
+            desvio_i_cbm = statistics.stdev(self.vector_I)
+            desvio_v_cbm = statistics.stdev(self.vector_V)
+            
+            rep_v_cbm = (desvio_v_cbm*100)/(math.sqrt(len(self.vector_V))*media_v_cbm)
+            rep_i_cbm = (desvio_i_cbm*100)/(math.sqrt(len(self.vector_I))*media_i_cbm)
+            
+            entero_v_cbm = cuatro_dig_sig(media_v_cbm)
+            print("Entero V=", entero_v_cbm)
+            
+            cuenta_v_cbm = (cuenta_v*100)/(math.sqrt(3)*entero_v_cbm)
+            cuenta_i_cbm = (cuenta_i*100)/(math.sqrt(3)*entero_i_cbm)
+            print("Cuenta V=", cuenta_v_cbm)
+            print("Cuenta I=", cuenta_i_cbm)
+            
+            
+            Coef_sens_vind_cbm = 1/(1-(ra/media_r_cbm))
+            Coef_sens_iind_cbm = 1/((ra/media_r_cbm)-1)
+            Coef_sens_ra_cbm = 1/(1-(media_r_cbm/ra))
+            
+            f_v_cbm       = pow(Coef_sens_vind_cbm*rep_v_cbm,2)
+            f_ins_v_cbm   = pow(Coef_sens_vind_cbm*fuente_instru_v,2)
+            f_cuenta_v_cbm= pow(Coef_sens_vind_cbm*cuenta_v_cbm,2)
+            f_i_cbm       = pow(Coef_sens_iind_cbm*rep_i_cbm,2)
+            f_ins_i_cbm   = pow(Coef_sens_iind_cbm*fuente_instru_i,2)
+            f_cuenta_i_cbm= pow(Coef_sens_iind_cbm*cuenta_i_cbm,2)
+            f_ra_cbm      = pow((fuente_ra*Coef_sens_ra_cbm)/math.sqrt(3),2)
+            
+            print("1=", f_v_cbm)
+            print("2=", f_ins_v_cbm)
+            print("3=", f_cuenta_v_cbm)
+            print("4=", f_i_cbm)
+            print("5=", f_ins_i_cbm)
+            print("6=", f_cuenta_i_cbm)
+            print("7=", f_ra_cbm)
+            
+            Uc_cbm = math.sqrt(
+                f_v_cbm + f_ins_v_cbm + f_cuenta_v_cbm +
+                f_i_cbm + f_ins_i_cbm + f_cuenta_i_cbm +
+                f_ra_cbm
+            )
+            print("Uc =", Uc_cbm)
+            
+            Vef_cbm = pow(Uc_cbm,4)/((pow(f_v_cbm,2)/len(self.vector_V)) + (pow(f_i_cbm,2)/len(self.vector_I)))
+            print("Vef= ", Vef_cbm)
+            
+            K_cbm = obtener_k_95(Vef_cbm)
+            
+            U_exp_cbm = K_cbm * Uc_cbm
+            U_exp_abs = rcorr_cbm * U_exp_cbm / 100.0
+        
+            print(f"R: {rcorr_cbm} Ω ± {U_exp_abs} Ω  (±{U_exp_cbm} %)")
+            self.consola.setText(f"R = {rcorr_cbm:.4f} Ω ± {U_exp_abs:.4f} Ω  (±{U_exp_cbm:.2f} %)")
+            
+        elif self.selector == 1: #TBM
+        
+            media_i_tbm = statistics.mean(self.vector_I)
+            print("Media de I TBM =", media_i_tbm)
+            entero_i = cuatro_dig_sig(media_i_tbm)
+            print("recortado=", entero_i)
+            media_v_tbm = statistics.mean(self.vector_V)
+            print("Media de V TBM =", media_v_tbm)
+            
+            media_r_tbm=media_v_tbm/media_i_tbm
+            print("Media de R =", media_r_tbm)
+            
+            errorm_tbm = (-media_r_tbm)/rv
+            rcorr_tbm=media_r_tbm/(1+errorm_tbm)
+            
+            desvio_i_tbm = statistics.stdev(self.vector_I)
+            desvio_v_tbm = statistics.stdev(self.vector_V)
+            
+            if abs(1.0 - (media_r_tbm/rv)) < eps:
+                mensaje = "⚠️ TBM: Rm ≈ Rv → sensibilidades enormes. Revisar configuración."
+                print(mensaje)
+                self.consola.setText(mensaje)
+                raise ValueError(mensaje)
+        
+            rep_v_tbm = (desvio_v_tbm*100)/(math.sqrt(len(self.vector_V))*media_v_tbm)   
+            rep_i_tbm = (desvio_i_tbm*100)/(math.sqrt(len(self.vector_I))*media_i_tbm) 
+            
+            entero_v = cuatro_dig_sig(media_v_tbm)
+            
+            print("Entero V=", entero_v)
+            
+            cuenta_v_tbm=(cuenta_v*100)/(math.sqrt(3)*entero_v) 
+            cuenta_i_tbm=(cuenta_i*100)/(math.sqrt(3)*entero_i)
+            print("Cuenta V=", cuenta_v_tbm)
+            print("Cuenta I=", cuenta_i_tbm)    
+            
+            Coef_sens_vind_tbm=1/(1-(media_r_tbm/rv))
+            Coef_sens_iind_tbm=1/((media_r_tbm/rv)-1)
+            Coef_sens_rv_tbm=1/(1-(rv/media_r_tbm))
+            
+            f_v=pow(Coef_sens_vind_tbm*rep_v_tbm,2)
+            f_ins_v=pow(Coef_sens_vind_tbm*fuente_instru_v,2)
+            f_cuenta_v=pow(Coef_sens_vind_tbm*cuenta_v_tbm,2)
+            f_i=pow(Coef_sens_iind_tbm*rep_i_tbm,2)
+            f_ins_i=pow(Coef_sens_iind_tbm*fuente_instru_i,2)
+            f_cuenta_i=pow(Coef_sens_iind_tbm*cuenta_i_tbm,2)
+            f_rv=pow((fuente_rv*Coef_sens_rv_tbm)/math.sqrt(3),2)
+            print("1=", f_v)
+            print("2=", f_ins_v)
+            print("3=", f_cuenta_v)
+            print("4=", f_i)
+            print("5=", f_ins_i)
+            print("6=", f_cuenta_i)
+            print("7=", f_rv)
+            
+            
+            
+            Uc= math.sqrt(f_v+f_ins_v+f_cuenta_v+f_i+f_ins_i+f_cuenta_i+f_rv)
+            print("Uc =", Uc)
+            
+            Vef = pow(Uc,4)/((pow(f_v, 2)/(len(self.vector_V)))+(pow(f_i, 2)/(len(self.vector_I)))) 
+            print("Vef= ", Vef)
+            
+            K_tbm = obtener_k_95(Vef)
+            
+            U_exp_tbm = K_tbm * Uc
+            U_exp_abs = rcorr_tbm * U_exp_tbm / 100.0
+        
+            print(f"R: {rcorr_tbm} Ω ± {U_exp_abs} Ω  (±{U_exp_tbm} %)")
+            self.consola.setText(f"R = {rcorr_tbm:.4f} Ω ± {U_exp_abs:.4f} Ω  (±{U_exp_tbm:.2f} %)")
 
-    # (si tenías calculo_CBM aquí, lo dejamos igual)
-    def calculo_CBM(self):
-        pass
-
-
+            
+                        
 # ================== util fuera de la clase ==================
 def obtener_k_95(Vef):
     # Tabla de k (95%) de Student (se conserva)
@@ -216,10 +351,13 @@ def obtener_k_95(Vef):
     if Vef >= 30:
         # Cuando Vef >= 30 se usa aproximadamente k=2
         return 2.0
-    else:
-        # valor más cercano en la tabla
-        grados = min(k_table.keys(), key=lambda x: abs(x - int(round(Vef))))
-        return k_table[grados]
+    gl = max(1, int(round(Vef)))        # 👈 clamp a 1
+    grados = min(k_table.keys(), key=lambda x: abs(x - gl))
+    return k_table[grados]
+
+def cuatro_dig_sig(x):
+    s = f"{x:.15g}".replace(".", "").lstrip("0")
+    return int((s[:4] or "1"))
 
 # ================== EJECUCIÓN ==================
 if __name__ == "__main__":
