@@ -92,6 +92,8 @@ class Ui(QMainWindow):
         Lee ambos multímetros una sola vez y muestra las lecturas en la consola.
         Guarda los valores en self.vector_V y self.vector_I.
         """
+        
+        
         try:
             cant = self.cant_muestras   
             intervalo = 1.0
@@ -177,7 +179,7 @@ class Ui(QMainWindow):
     # ------------------- Tus funciones ---------------------
     def calculo(self):
         
-        ra = 0.45   # resistencia del amperímetro (ohm)
+        ra = 0.045   # resistencia del amperímetro (ohm)
         rv = 10e6   # resistencia del voltímetro (ohm)
         fuente_instru_v= 5e-2/math.sqrt(3) #[%]
         fuente_instru_i= 8e-2/math.sqrt(3) #[%]
@@ -186,12 +188,13 @@ class Ui(QMainWindow):
         cuenta_v=5
         cuenta_i=20
         eps = 1e-12  # umbral numérico
+        factor_corr_Amp = 1e-3
         
         if self.selector == 0: #CBM
             media_i_cbm = statistics.mean(self.vector_I)
             entero_i_cbm = cuatro_dig_sig(media_i_cbm)         
             media_v_cbm = statistics.mean(self.vector_V)         
-            media_r_cbm = media_v_cbm / media_i_cbm
+            media_r_cbm = media_v_cbm / (media_i_cbm * factor_corr_Amp)
             
             # Corrección por RA (voltímetro mide R+RA, amperímetro en serie)
             rcorr_cbm = media_r_cbm - ra
@@ -265,7 +268,7 @@ class Ui(QMainWindow):
             entero_i = cuatro_dig_sig(media_i_tbm)
             media_v_tbm = statistics.mean(self.vector_V)
             
-            media_r_tbm=media_v_tbm/media_i_tbm
+            media_r_tbm=media_v_tbm / (media_i_tbm * factor_corr_Amp)
             
             errorm_tbm = (-media_r_tbm)/rv
             rcorr_tbm=media_r_tbm/(1+errorm_tbm)

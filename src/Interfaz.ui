@@ -38,7 +38,7 @@ background-color: rgb(50, 130, 45);</string>
    <widget class="QLabel" name="label_6">
     <property name="geometry">
      <rect>
-      <x>40</x>
+      <x>20</x>
       <y>90</y>
       <width>411</width>
       <height>31</height>
@@ -54,10 +54,10 @@ background-color: rgb(50, 130, 45);</string>
    <widget class="QLabel" name="consola">
     <property name="geometry">
      <rect>
-      <x>40</x>
+      <x>20</x>
       <y>130</y>
       <width>411</width>
-      <height>151</height>
+      <height>211</height>
      </rect>
     </property>
     <property name="styleSheet">
@@ -68,28 +68,12 @@ border-color: rgb(0, 0, 0);</string>
      <string/>
     </property>
    </widget>
-   <widget class="QLabel" name="label_7">
-    <property name="geometry">
-     <rect>
-      <x>680</x>
-      <y>90</y>
-      <width>291</width>
-      <height>31</height>
-     </rect>
-    </property>
-    <property name="styleSheet">
-     <string notr="true">background-color: rgb(187, 255, 189);</string>
-    </property>
-    <property name="text">
-     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;PROCESO&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-    </property>
-   </widget>
    <widget class="QPushButton" name="select_TBM">
     <property name="geometry">
      <rect>
-      <x>710</x>
+      <x>680</x>
       <y>180</y>
-      <width>101</width>
+      <width>141</width>
       <height>31</height>
      </rect>
     </property>
@@ -103,9 +87,9 @@ border-color: rgb(0, 0, 0);</string>
    <widget class="QPushButton" name="select_CBM">
     <property name="geometry">
      <rect>
-      <x>850</x>
+      <x>840</x>
       <y>180</y>
-      <width>101</width>
+      <width>131</width>
       <height>31</height>
      </rect>
     </property>
@@ -119,9 +103,9 @@ border-color: rgb(0, 0, 0);</string>
    <widget class="QPushButton" name="proceso">
     <property name="geometry">
      <rect>
-      <x>420</x>
-      <y>330</y>
-      <width>221</width>
+      <x>680</x>
+      <y>290</y>
+      <width>291</width>
       <height>51</height>
      </rect>
     </property>
@@ -129,16 +113,16 @@ border-color: rgb(0, 0, 0);</string>
      <string notr="true">background-color: rgb(255, 255, 255);</string>
     </property>
     <property name="text">
-     <string>COMENZAR PROCESO</string>
+     <string>MEDICION GUM</string>
     </property>
    </widget>
    <widget class="QPushButton" name="salir">
     <property name="geometry">
      <rect>
       <x>470</x>
-      <y>430</y>
-      <width>131</width>
-      <height>51</height>
+      <y>460</y>
+      <width>171</width>
+      <height>41</height>
      </rect>
     </property>
     <property name="styleSheet">
@@ -151,7 +135,7 @@ border-color: rgb(0, 0, 0);</string>
    <widget class="QComboBox" name="Combobox_3">
     <property name="geometry">
      <rect>
-      <x>840</x>
+      <x>850</x>
       <y>130</y>
       <width>121</width>
       <height>31</height>
@@ -186,9 +170,9 @@ border-color: rgb(0, 0, 0);</string>
    <widget class="QPushButton" name="boton_medir">
     <property name="geometry">
      <rect>
-      <x>690</x>
+      <x>680</x>
       <y>230</y>
-      <width>281</width>
+      <width>291</width>
       <height>51</height>
      </rect>
     </property>
@@ -196,13 +180,13 @@ border-color: rgb(0, 0, 0);</string>
      <string notr="true">background-color: rgb(255, 255, 255);</string>
     </property>
     <property name="text">
-     <string>PRUEBA DE MEDICIONES</string>
+     <string>MEDICION PROMEDIO</string>
     </property>
    </widget>
    <widget class="QLabel" name="label_8">
     <property name="geometry">
      <rect>
-      <x>690</x>
+      <x>680</x>
       <y>130</y>
       <width>141</width>
       <height>31</height>
@@ -218,9 +202,9 @@ border-color: rgb(0, 0, 0);</string>
    <widget class="QLabel" name="label_4">
     <property name="geometry">
      <rect>
-      <x>770</x>
+      <x>0</x>
       <y>550</y>
-      <width>321</width>
+      <width>421</width>
       <height>51</height>
      </rect>
     </property>
@@ -239,10 +223,10 @@ text-decoration: underline;
    <widget class="QLabel" name="label">
     <property name="geometry">
      <rect>
-      <x>820</x>
-      <y>370</y>
+      <x>870</x>
+      <y>420</y>
       <width>221</width>
-      <height>191</height>
+      <height>171</height>
      </rect>
     </property>
     <property name="text">
@@ -252,6 +236,22 @@ text-decoration: underline;
      <pixmap>logo.png</pixmap>
     </property>
    </widget>
+   <widget class="QLabel" name="label_9">
+    <property name="geometry">
+     <rect>
+      <x>680</x>
+      <y>90</y>
+      <width>291</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">background-color: rgb(187, 255, 189);</string>
+    </property>
+    <property name="text">
+     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;PARAMETROS DE PROCESO&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+    </property>
+   </widget>
   </widget>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">
@@ -259,7 +259,7 @@ text-decoration: underline;
      <x>0</x>
      <y>0</y>
      <width>1104</width>
-     <height>21</height>
+     <height>26</height>
     </rect>
    </property>
   </widget>
