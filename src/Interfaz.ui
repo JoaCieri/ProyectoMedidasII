@@ -202,9 +202,9 @@ border-color: rgb(0, 0, 0);</string>
    <widget class="QLabel" name="label_4">
     <property name="geometry">
      <rect>
-      <x>0</x>
+      <x>3</x>
       <y>550</y>
-      <width>421</width>
+      <width>441</width>
       <height>51</height>
      </rect>
     </property>
@@ -250,6 +250,25 @@ text-decoration: underline;
     </property>
     <property name="text">
      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;PARAMETROS DE PROCESO&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_2">
+    <property name="geometry">
+     <rect>
+      <x>20</x>
+      <y>365</y>
+      <width>411</width>
+      <height>191</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+    <property name="pixmap">
+     <pixmap>codigoResistor.png</pixmap>
+    </property>
+    <property name="scaledContents">
+     <bool>true</bool>
     </property>
    </widget>
   </widget>

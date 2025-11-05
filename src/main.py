@@ -34,7 +34,7 @@ class Ui(QMainWindow):
         # PARÁMETROS DE LA INTERFAZ
         #self.showMaximized()
         self.proceso.setEnabled(False)
-
+        self.boton_medir.setEnabled(False)
         # VARIABLES (respetadas)
         self.muestras_I = None
         self.muestras_V = None
@@ -70,6 +70,8 @@ class Ui(QMainWindow):
     def CBM(self):
         self.selector = 0
         self.proceso.setEnabled(True)
+        self.boton_medir.setEnabled(True)
+
         try:
             self.cant_muestras = int(self.Combobox_3.currentText())
         except Exception:
@@ -79,6 +81,8 @@ class Ui(QMainWindow):
     def TBM(self):
         self.selector = 1
         self.proceso.setEnabled(True)
+        self.boton_medir.setEnabled(True)
+
         try:
             self.cant_muestras = int(self.Combobox_3.currentText())
         except Exception:
@@ -104,7 +108,7 @@ class Ui(QMainWindow):
 
             from DMM.UT61ePlus.dual_read_v4 import run_dual
 
-            self.consola.setText("⏳ Midiendo...")
+            self.consola.setText("Midiendo...")
 
             KEI_VEC, KEI_UNITS, UT_VEC, UT_UNITS = run_dual(reads=cant, interval=intervalo)
 
@@ -114,14 +118,14 @@ class Ui(QMainWindow):
             self.vector_V = np.array(KEI_VEC[:N], dtype=float)
 
             # Imprimir resultados en consola
-            texto = "📊 Mediciones realizadas:\n"
+            texto = "Mediciones realizadas:\n"
             for i in range(N):
                 texto += f"{i+1:02d}) V = {self.vector_V[i]:.6f} V   |   I = {self.vector_I[i]:.6f} A\n"
 
             self.consola.setText(texto)
 
         except Exception as e:
-            self.consola.setText(f"⚠ Error en medición: {e}")
+            self.consola.setText(f"Error en medición: {e}")
     
     # ----------------------- Proceso -----------------------
     def iniciar_proceso(self):
@@ -200,7 +204,7 @@ class Ui(QMainWindow):
             rcorr_cbm = media_r_cbm - ra
             
             if abs(1.0 - (ra/media_r_cbm)) < eps or abs(1.0 - (media_r_cbm/ra)) < eps:
-                mensaje = "⚠️ CBM: Rm ≈ RA → sensibilidades enormes. Revisar configuración."
+                mensaje = "CBM: Rm ≈ RA → sensibilidades enormes. Revisar configuración."
                 print(mensaje)
                 self.consola.setText(mensaje)
                 raise ValueError(mensaje)
@@ -277,7 +281,7 @@ class Ui(QMainWindow):
             desvio_v_tbm = statistics.stdev(self.vector_V)
             
             if abs(1.0 - (media_r_tbm/rv)) < eps:
-                mensaje = "⚠️ TBM: Rm ≈ Rv → sensibilidades enormes. Revisar configuración."
+                mensaje = "TBM: Rm ≈ Rv → sensibilidades enormes. Revisar configuración."
                 print(mensaje)
                 self.consola.setText(mensaje)
                 raise ValueError(mensaje)
@@ -344,7 +348,7 @@ def obtener_k_95(Vef):
     if Vef >= 30:
         # Cuando Vef >= 30 se usa aproximadamente k=2
         return 2.0
-    gl = max(1, int(round(Vef)))        # 👈 clamp a 1
+    gl = max(1, int(round(Vef)))        #  clamp a 1
     grados = min(k_table.keys(), key=lambda x: abs(x - gl))
     return k_table[grados]
 
