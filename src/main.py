@@ -22,6 +22,7 @@ def _to_float(x):
     try:
         return float(str(x).replace(",", "."))
     except Exception:
+        
         return float("nan")
 
 

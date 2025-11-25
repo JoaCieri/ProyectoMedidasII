@@ -1,4 +1,4 @@
-# dual_read_v3.py
+# dual_read_v4.py
 import threading, time, re
 from statistics import mean
 
